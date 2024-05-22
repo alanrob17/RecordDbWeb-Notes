@@ -179,9 +179,9 @@ In our application we have two entities or Domain models and they are ``Artist``
             
         }
 
-        public DbSet<Artist> Artists { get; set; }
+        public DbSet<Artist> Artist { get; set; }
 
-        public DbSet<Record> Records { get; set; }
+        public DbSet<Record> Record { get; set; }
     }
 ```
 
