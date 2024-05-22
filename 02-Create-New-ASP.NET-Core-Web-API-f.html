@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Building ASP.Net Core Web API's</title>
+<link href="assets/css/bootstrap.css" rel="stylesheet">
+<!-- Custom styles for this template -->
+<link href="assets/css/starter-template.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+<style type="text/css">
+html {
+	font-size: 90.0%;
+}
+
+h2 {
+	margin-top: 60px;
+}
+
+h4, h3 {
+	padding-top: 40px!;		
+}
+
+p {
+	font-size: 1.2em;
+}
+h4 {
+	font-size: 1.4em;
+}
+
+img, pre.prettyprint {
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+    color:#007bff;
+
+}
+blockquote {
+    border-left: 4px solid #999;
+    padding-left: 1rem;
+    page-break-inside: avoid;
+}
+</style>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Udemy - The Complete Node.js Developer Course</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Building ASP.Net Core Web API's <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="container">
+    <div class="starter-template">
+
+
+<h1 id="create-new-aspnet-core-web-api--domain-models">Create New ASP.NET Core Web API &amp; Domain Models</h1>
+<h2 id="create-a-new-web-api-project">Create a new Web API Project</h2>
+<p><img src="assets/images/aspnetcorewebapi.jpg" alt="ASP.Net Core Web API" title="ASP.Net Core Web API"></p>
+<h3 id="location">Location</h3>
+<blockquote>
+<p>D:\Projects\RecordDbWeb</p>
+</blockquote>
+<h3 id="project">Project</h3>
+<blockquote>
+<p>RecordDb.API</p>
+</blockquote>
+<p>We are using <code>Controllers</code> for this project.</p>
+<h2 id="add-packages">Add Packages</h2>
+<blockquote>
+<p>Microsoft.EntityFrameworkCore.SqlServer<br>
+Microsoft.EntityFrameworkCore.Tools</p>
+</blockquote>
+<h2 id="http-verbs">HTTP Verbs</h2>
+<p>HTTP Verbs define the types of actions that can be performed on a resource identified by a URI.</p>
+<ul>
+<li>GET</li>
+<li>POST</li>
+<li>PUT</li>
+<li>DELETE</li>
+<li>PATCH</li>
+<li>OPTIONS</li>
+</ul>
+<p><strong>GET:</strong> <a href="https://yourapi.com/api/employees">https://yourapi.com/api/employees</a> <em>(Get All Employees)</em></p>
+<p><strong>GET:</strong> <a href="https://yourapi.com/api/employees/%7Bid%7D">https://yourapi.com/api/employees/{id}</a> <em>(Get Single Employee by Id)</em></p>
+<p><strong>POST:</strong> <a href="https://yourapi.com/api/employees">https://yourapi.com/api/employees</a> <em>(Create and Employee)</em></p>
+<p><strong>PUT:</strong> <a href="https://yourapi.com/api/employees/%7Bid%7D">https://yourapi.com/api/employees/{id}</a> <em>(Update an Employee by Id)</em></p>
+<p><strong>DELETE:</strong> <a href="https://yourapi.com/api/employees">https://yourapi.com/api/employees</a> <em>(Delete an Employee by Id)</em></p>
+<h2 id="routing">Routing</h2>
+<blockquote>
+<p><strong>Delete Employee</strong><br>
+<strong>DELETE</strong><br>
+<strong><a href="https://yourapi.com/api/employees/5">https://yourapi.com/api/employees/5</a></strong></p>
+</blockquote>
+<p>Translates to</p>
+<pre class="prettyprint"><code><div>    [httpDelete(<span class="hljs-string">"{id}"</span>)]
+    public IActionResult Delete(int id)
+    {
+        // delete the employee by Id
+    }
+</div></code></pre>
+<h2 id="creating-a-controller">Creating a Controller</h2>
+<p>Right-click on the <code>Controllers</code> folder in Visual Studio.</p>
+<p>Click on <code>Add</code>--&gt;<code>Controller</code> then click on <code>API</code> and then <code>API.Controller - Empty</code>.</p>
+<p><img src="assets/images/api-controller-empty.jpg" alt="Empty API Controller" title="Empty API Controller"></p>
+<p>Name your Controller <code>StudentsController.cs</code>. Once you save this it will scaffold the following code.</p>
+<pre class="prettyprint"><code><div>    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+
+    namespace RecordDb.API.Controllers
+    {
+        [Route(<span class="hljs-string">"api/[controller]"</span>)]
+        [ApiController]
+        public class StudentsController : ControllerBase
+        {
+        }
+    }
+</div></code></pre>
+<p><strong>Note:</strong> a controller will always have plural name prefix with the word <code>Controller</code>. This is the standard for a controller.</p>
+<p>This is the route for the controller.</p>
+<pre class="prettyprint"><code><div>    [Route(<span class="hljs-string">"api/[controller]"</span>)]
+</div></code></pre>
+<p>When you create a <strong>GET</strong> endpoint it will have the link (it is the Uri to the controller),</p>
+<pre class="prettyprint"><code><div>    https://localhost:1234/api/students
+</div></code></pre>
+<p>Where <code>/[controller]</code> represents the name of the controller (in our case <code>students</code>).</p>
+<p>Now we can create a <code>GET</code> action method.</p>
+<pre class="prettyprint"><code><div>    // Get: https://localhost:1234/api/students
+    [HttpGet]
+    public IActionResult <span class="hljs-function"><span class="hljs-title">GetAllStudents</span></span>()
+    {
+        string[] studentNames = { <span class="hljs-string">"Alan"</span>, <span class="hljs-string">"James"</span>, <span class="hljs-string">"Charley"</span>, <span class="hljs-string">"Ethan"</span> };
+
+        <span class="hljs-built_in">return</span> Ok(studentNames);
+    }
+</div></code></pre>
+<p>This creates a <strong>GET</strong> endpoint and when we go to the Swagger page we will see this.</p>
+<p><img src="assets/images/swagger-endpoints.jpg" alt="Swagger endpoints" title="Swagger endpoints"></p>
+<p>Trying and clicking Execute will show this.</p>
+<p><img src="assets/images/students-endpoint.jpg" alt="Student GET endpoint" title="Student GET endpoint"></p>
+<p>The results show our response which is our JSON array of students. Note that you will also see the Uri for our endpoint.</p>
+<pre class="prettyprint"><code><div>    https://localhost:7262/api/Students
+</div></code></pre>
+<p>And a 200 response to show us that the response was successful.</p>
+<p>Now we know how our routing works and how to consume an API using Swagger. An alternate way to consume our API is you use Postman.</p>
+<h2 id="creating-a-project-and-domain-models">Creating a Project and Domain Models</h2>
+<p>Now, we are going to create a real API in our project. Our Domain models will be from an existing database and will be,</p>
+<ul>
+<li>Artist</li>
+<li>Record</li>
+</ul>
+<p>Create a <code>Models</code> folder and then in here another folder named <code>Domain</code>.</p>
+<p>Create new classes in <code>Domain</code> for <code>Artist</code> and <code>Record</code>.</p>
+<h2 id="create-a-dbcontext-class">Create a DbContext class</h2>
+<p>A DbContext class will allow us to.</p>
+<ul>
+<li>Maintain a connection to the RecordDB database</li>
+<li>Track changes</li>
+<li>Perform CRUD operations</li>
+<li>Bridge between Domain models and the database</li>
+</ul>
+<p>The DbContext class is a bridge between the Domain Models and the Database.</p>
+<p><img src="assets/images/dbcontext-class.jpg" alt="DbContext class" title="DbContext class"></p>
+<p>Create a new folder named <strong>Data</strong> and a class named <code>RecordDbContext</code>.</p>
+<p>This class inherits from the <code>DbContext</code> class. It is part of the EntityFrameworkCore package.</p>
+<p>Create a constructor in the class and we want to add DbContext options to the class.</p>
+<pre class="prettyprint"><code><div>    public class RecordDbContext: DbContext
+    {
+        public RecordDbContext(DbContextOptions dbContextOptions): base(dbContextOptions)
+        {
+            
+        }
+    }
+</div></code></pre>
+<p>Now we want to create <code>DbSets</code>. A DbSet is a property of the <code>DbContext</code> class that represents a collection of entities in the database.</p>
+<p>In our application we have two entities or Domain models and they are <code>Artist</code> and <code>Record</code> and we want to make DbSets of these entities. We will do this in the <code>DbContext</code>.</p>
+<pre class="prettyprint"><code><div>    public class RecordDbContext: DbContext
+    {
+        public RecordDbContext(DbContextOptions dbContextOptions): base(dbContextOptions)
+        {
+            
+        }
+
+        public DbSet&lt;Artist&gt; Artists { get; <span class="hljs-built_in">set</span>; }
+
+        public DbSet&lt;Record&gt; Records { get; <span class="hljs-built_in">set</span>; }
+    }
+</div></code></pre>
+<h2 id="create-a-connection-string">Create a Connection string</h2>
+<p>We will do this in the <code>appsettings.json</code> file in the root folder.</p>
+<pre class="prettyprint"><code><div>  <span class="hljs-string">"ConnectionStrings"</span>: {
+    <span class="hljs-string">"RecordDb"</span>: <span class="hljs-string">"Server=TIGER;Database=RecordDB;Trusted_Connection=True;TrustServerCertificate=True"</span>
+  }
+</div></code></pre>
+<h2 id="dependency-injection">Dependency Injection</h2>
+<p>Dependency Injection is a design pattern used to increase the maintainability of applications by reducing the coupling between components. Dependency injection is used to manage the lifetime ane dependency of services used throughout the application.</p>
+<p>Dependency Injection works on the fundamental that instead of instantiating objects within a class those objects are passed in as parameters into the class by passing them to the constructor or a method instead. This allows for greater flexibility in the way objects are created and managed.</p>
+<p>ASP.Net core contains a Dependency Injection container that can be used to manage the dependencies of an application. Dependency Injection container is responsible for creating and managing instances of services which are registered with the container when the application starts.</p>
+<p>Dependency Injection is:</p>
+<ul>
+<li>A design pattern to increase maintainability and testability</li>
+<li>Dependency Injection is built into ASP.Net Core</li>
+<li>Dependency Injection is responsible for creating and managing instances</li>
+</ul>
+<p>Let's look at an example without Dependency Injection.</p>
+<pre class="prettyprint"><code><div>    public class MyController: ControllerBase
+    {
+        private <span class="hljs-built_in">readonly</span> MyService _service;
+
+        public <span class="hljs-function"><span class="hljs-title">MyController</span></span>()
+        {
+            _service = new MyService();
+        }
+
+        public IActionResult <span class="hljs-function"><span class="hljs-title">Index</span></span>()
+        {
+            var data = _service.GetData();
+
+            <span class="hljs-built_in">return</span> Ok(Data);
+        }
+    }
+</div></code></pre>
+<p>In the example above we are instantiating the service in the constructor. The class will have to be managed by the controller. Later on in the future if we have to rename the class or have to use a different implementation of <code>MyService</code> we have to change all the controllers and classes that use <code>MyService</code>.</p>
+<p>Instead of creating the instance of creating the instance within the class this is what Dependency Injection does. We can easily inject the interface <code>IMyService</code> inside our application in the <code>Program.cs</code> file and we also provide the implementation detail of the interface (<code>MyService</code>) which is what we are trying to implement. So <code>MyService</code> has been injected inside the application.</p>
+<pre class="prettyprint"><code><div>    services.AddScoped&lt;IMyService, MyService&gt;();
+</div></code></pre>
+<p>Inside the controller or any controller that we want to use <code>MyService</code> we can easily inject the service as a parameter to the controller or as a parameter to the method. And then we can use this service throughout the application, for example in the <code>Index</code> method.</p>
+<p>An example with Dependency Injection.</p>
+<pre class="prettyprint"><code><div>    public class MyController: ControllerBase
+    {
+        private <span class="hljs-built_in">readonly</span> IMyService _service;
+
+        public MyController(IMyService service)
+        {
+            _service = service;
+        }
+
+        public IActionResult <span class="hljs-function"><span class="hljs-title">Index</span></span>()
+        {
+            var data = _service.GetData();
+
+            <span class="hljs-built_in">return</span> Ok(Data);
+        }
+    }
+</div></code></pre>
+<p>This is a good practice and it also satisfies the <strong>D</strong> in SOLID. By doing this we can easily change the implementation of <code>MyService</code> to another service implementation in the <code>Program.cs</code> file in just one place and then later on all of the controllers can implement the new implementation which is now managed and provided by the application.</p>
+<p>Now we can inject our <code>RecordDb</code> context inside the application so that later on we can use the context class inside controllers or repositories.</p>
+<p>In <code>Program.cs</code> we already have a few services that have been injected by default including Swagger. After this we want to inject our DbContext class.</p>
+<pre class="prettyprint"><code><div>    var builder = WebApplication.CreateBuilder(args);
+
+    // Add services to the container.
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+    
+    builder.Services.AddDbContext&lt;RecordDbContext&gt;(options =&gt; 
+        options.UseSqlServer(builder.Configuration.GetConnectionString(<span class="hljs-string">"RecordDb"</span>)));
+    
+    var app = builder.Build();
+</div></code></pre>
+<p>We have injected our DbContext class which is kept in the Data folder and named <code>RecordDbContext.cs</code>. We also added an option to get the connection string from <code>appsettings.json</code>. This is part of EntityFrameworkCore.</p>
+<p>Now the application will manage all of the instances of the DbContext class whenever we call it inside of controllers or repositories.</p>
+ 
+
+
+</div><!-- starter-template -->
+</div><!-- /.container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"/>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
+</body>
+</html>
