@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Building ASP.Net Core Web API's</title>
+<link href="assets/css/bootstrap.css" rel="stylesheet">
+<!-- Custom styles for this template -->
+<link href="assets/css/starter-template.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+<style type="text/css">
+html {
+	font-size: 90.0%;
+}
+
+h2 {
+	margin-top: 60px;
+}
+
+h4, h3 {
+	padding-top: 40px!;		
+}
+
+p {
+	font-size: 1.2em;
+}
+h4 {
+	font-size: 1.4em;
+}
+
+img, pre.prettyprint {
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+    color:#007bff;
+
+}
+blockquote {
+    border-left: 4px solid #999;
+    padding-left: 1rem;
+    page-break-inside: avoid;
+}
+</style>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Building ASP.Net Core Web API's</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Create New Controller <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="container">
+    <div class="starter-template">
+
+
+<h1 id="create-new-artist-controller-crud-operations--action-methods">Create New Artist Controller, CRUD Operations &amp; Action Methods</h1>
+<p><strong>Note:</strong> My RecordDb database is an existing database and was made with singular table names. For this reason my <code>DbSet</code> names are singular as well. In ASP.Net Core and EntityFramework the Domains are usually plural.</p>
+<h2 id="create-the-artists-controller">Create the Artists Controller</h2>
+<p>Remember to use the Empty API Controller template.</p>
+<pre class="prettyprint"><code><div>    namespace RecordDb.API.Controllers
+    {
+        [Route(<span class="hljs-string">"api/[controller]"</span>)]
+        [ApiController]
+        public class ArtistsController : ControllerBase
+        {    
+        }
+    }
+</div></code></pre>
+<p>The annotations are important (using an API Controller template creates these).</p>
+<blockquote>
+<p>[Route(&quot;api/[controller]&quot;)]</p>
+</blockquote>
+<p>This annotation denotes the route for the controller. In our case this will be.</p>
+<blockquote>
+<p><a href="https://localhost:1234/api/artists">https://localhost:1234/api/artists</a></p>
+</blockquote>
+<p>This Url is going to the <code>artists</code> controller.</p>
+<p><code>artists</code> is from the prefix of the controller name (ArtistsController.cs).</p>
+<p>We could also change this annotation to.</p>
+<blockquote>
+<p>[Route(&quot;api/artists&quot;)]</p>
+</blockquote>
+<p>And it would work just the same.</p>
+<p>The following annotation denotes that the controller is an API controller (not an MVC controller).</p>
+<blockquote>
+<p>[ApiController]</p>
+</blockquote>
+<p><strong>Note:</strong> if this annotation is missing you won't see any endpoints in Swagger.</p>
+<h2 id="creating-a-dbcontext">Creating a DbContext</h2>
+<p>We will create a DbContext to retrieve our Artist data using  constructor injection.</p>
+<pre class="prettyprint"><code><div>    private <span class="hljs-built_in">readonly</span> RecordDbContext dbContext;
+
+    public ArtistsController(RecordDbContext dbContext)
+    {
+        this.dbContext = dbContext;
+    }
+</div></code></pre>
+<p>Now we can use the <code>dbContext</code> in our Action methods.</p>
+<h2 id="creating-an-action-method">Creating an Action Method</h2>
+<p>This is the route to get all Artists.</p>
+<pre class="prettyprint"><code><div>    // GET: https://localhost:1234/api/artists
+    [HttpGet]
+    public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">GetAll</span></span>()
+    {
+        var artists = await dbContext.Artist.ToListAsync();
+
+        <span class="hljs-built_in">return</span> Ok(artists);
+    }
+</div></code></pre>
+<p>We use a <code>[HttpGet]</code> verb as our attribute.</p>
+<p>We have access to our two domains through our <code>dbContext</code> so we can bring back the Artist data using the ToListAsync() method.</p>
+<p>Run the code and a Swagger page will appear in your browser.</p>
+<p><img src="assets/images/swagger-artist-endpoint.jpg" alt="Swagger Artist endpoint" title="Swagger Artist endpoint"></p>
+<p>When you execute this endpoint it will return.</p>
+<p><img src="assets/images/results.jpg" alt="Endpoint results" title="Endpoint results"></p>
+<p>The data is returned as JSON.</p>
+<pre class="prettyprint"><code><div>    {
+        <span class="hljs-string">"artistId"</span>: 1,
+        <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"William"</span>,
+        <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Ackerman"</span>,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"William Ackerman"</span>,
+        <span class="hljs-string">"biography"</span>: <span class="hljs-string">"&lt;p&gt;Will Ackerman has gained..."</span>
+    },
+</div></code></pre>
+<p>Also note that the Swagger returns a <code>Url</code> and a <code>curl</code> instruction and you can use either of these to return data.</p>
+<blockquote>
+<p><a href="https://localhost:7262/api/Artists">https://localhost:7262/api/Artists</a></p>
+</blockquote>
+<p>And.</p>
+<blockquote>
+<p>curl -X 'GET' '<a href="https://localhost:7262/api/Artists">https://localhost:7262/api/Artists</a>' -H 'accept: <em>/</em>'</p>
+</blockquote>
+<h2 id="getting-an-artist-by-id">Getting an Artist by Id</h2>
+<p>For this Action method we will have to supply an <code>Id</code> to return a single Artist.</p>
+<pre class="prettyprint"><code><div>    // GET: https://localhost:1234/api/artists/114
+    [HttpGet]
+    [Route(<span class="hljs-string">"{id:int}"</span>)]
+    public async Task&lt;IActionResult&gt; GetById([FromRoute] int id)
+    {   
+        var artist = await dbContext.Artist.FindAsync(id);
+
+        <span class="hljs-keyword">if</span> (artist == null)
+        {
+            <span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"An Artist with Id: {id} wasn't found!"</span>);
+
+        <span class="hljs-built_in">return</span> Ok(artist);
+    }
+</div></code></pre>
+<h3 id="code-breakdown">Code breakdown</h3>
+<p>Once again we are using a <code>[HttpGet]</code> verb.</p>
+<p>This time we need to receive a parameter of <code>Id</code> to find a particular Artist. We do this by adding a <code>Route</code> attribute in this format.</p>
+<blockquote>
+<p>[Route(&quot;{id:int}&quot;)]</p>
+</blockquote>
+<p><strong>Note:</strong> the parameter name (<code>id</code>) in the Route <strong>must</strong> match the method's input parameter (see below).</p>
+<pre class="prettyprint"><code><div>    [Route(<span class="hljs-string">"{id:int}"</span>)]
+    public async Task&lt;IActionResult&gt; GetById([FromRoute] int id)
+    {
+        ...
+    }
+</div></code></pre>
+<p>Also note that in the Route attribute we can make the parameter type safe by adding the <code>int</code> type.</p>
+<p>In the method signature we know that the parameter is coming in from the Route so we can use the property <code>[FromRoute]</code> in front of the input parameter.</p>
+<p>The next line allows us to find and return the Artist record if it is found.</p>
+<pre class="prettyprint"><code><div>    var artist = await dbContext.Artist.FindAsync(id);
+</div></code></pre>
+<p>The <code>FindAsync()</code> method requires an input parameter that has to be the Primary Key for the Entity.</p>
+<p>We can also use the following method to return the Artist record.</p>
+<pre class="prettyprint"><code><div>    var artist = await dbContext.Artist.FirstOrDefaultAsync(a =&gt; a.ArtistId == id);
+</div></code></pre>
+<p>In this statement we use a LINQ query method, <code>.FirstOrDefault()</code> where we query the input parameter against the parameter in the database.</p>
+<p>The benefit of using this method is that we are not tied to using just the <code>id</code> as a parameter. We could also use other parameters for the search such as the <code>Name</code> parameter, for example.</p>
+<pre class="prettyprint"><code><div>    // GET: https://localhost:1234/api/artists/Yes
+    [HttpGet]
+    [Route(<span class="hljs-string">"{name:alpha}"</span>)]
+    public async Task&lt;IActionResult&gt; GetById([FromRoute] string name)
+    {
+        var artist = await dbContext.Artist.FirstOrDefaultAsync(a =&gt; a.Name == name);
+    
+        <span class="hljs-keyword">if</span> (artist == null)
+        {
+            <span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"An Artist with Name: {name} wasn't found!"</span>);
+        }
+    
+        <span class="hljs-built_in">return</span> Ok(artist);
+    }
+</div></code></pre>
+<p>Once we have returned the result we need to test that a valid Artist has been returned.</p>
+<p>In the following code we have returned a response of <strong>200</strong> which means success. We code this with.</p>
+<pre class="prettyprint"><code><div>    <span class="hljs-built_in">return</span> Ok(artist);
+</div></code></pre>
+<p>This returns.</p>
+<p><img src="assets/images/get-artist-by-id.jpg" alt="Results" title="Results"></p>
+<p>If nothing has been returned we can report the error with a response of 404, Not Found with this code.</p>
+<pre class="prettyprint"><code><div>    <span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"An Artist with Name: {name} wasn't found!"</span>);
+</div></code></pre>
+<p><img src="assets/images/not-found.jpg" alt="Not Found" title="Not Found"></p>
+
+
+
+</div><!-- starter-template -->
+</div><!-- /.container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"/>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
+</body>
+</html>
