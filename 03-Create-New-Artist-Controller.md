@@ -368,7 +368,7 @@ We use the POST verb to create a new ``Artist``.
 
 In the method statement we are using the [FromBody] attribute because the data is being posted from the client.
 
-The type of Body we are receiving is from the ``AddArtistDto`` DTO object. This object doesn't have an ArtistId.
+The type of Body we are receiving is from the ``AddArtistDto`` DTO object. This object doesn't have an ``ArtistId``.
 
 ```bash
     // POST: https://localhost:1234/api/artists
@@ -434,3 +434,108 @@ There is one more interesting point to note in the Header.
 It is the ``GetById()`` response and we can use this Url to find the newly created Artist object.
 
 This is why we need to send back a **201** response rather than the **200** response that would only send back a message.
+
+## Updating an Artist
+
+We use an ``ArtistId`` that we retrieve from the Route and an ``Artist`` object returned from the Body.
+
+```bash
+	[HttpPut]
+	[Route("{id:int}")]
+	public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateArtistDto updateArtistDto)
+	{
+		var artist = dbContext.Artist.Find(id);
+	
+		if (artist == null)
+		{
+			return NotFound($"Artist with Id: {id} not found!");
+		}
+	
+		// Map DTO to Domain Model
+		artist.FirstName = updateArtistDto.FirstName;
+		artist.LastName = updateArtistDto.LastName;
+		artist.Name = updateArtistDto.Name;
+		artist.Biography = updateArtistDto.Biography;
+	
+		await dbContext.SaveChangesAsync();
+	
+		// Convert Domain Model to DTO
+		var artistDto = new ArtistDto
+		{
+			ArtistId = artist.ArtistId,
+			FirstName = artist.FirstName,
+			LastName = artist.LastName,
+			Name = artist.Name,
+			Biography = artist.Biography
+		};
+	
+		return Ok(artistDto);
+	}
+```
+
+Once again we will create a new DTO to bring in the ``Artist`` object named ``UpdateArtistDto`` that contains all of the properties that we want to update.
+
+We check to see if the ``ArtistId`` coming from the Route exists.
+
+```bash
+	var artist = dbContext.Artist.Find(id);
+```
+
+Then we map the DTO to the Domain Model and we are ready to update the ``Artist`` object.
+
+```bash
+	await dbContext.SaveChangesAsync();
+```
+
+Because we have used the ``dbContext`` to find the ``Artist`` object previously means that the object is still in context so the statement above will update the object with a single statement.
+
+We then convert the Domain Model back into a DTO and return it with an ``OK(artistDto)`` method to return a response of **200**.
+
+## Deleting an Artist
+
+We use a Delete verb.
+
+**Note:** that we don't have an asynchronous ``Remove()`` method so the delete is carried out synchronously.
+
+```bash
+	// DELETE: https://localhost:1234/api/artists/114
+	[HttpDelete]
+	[Route("{id:int}")]
+	public IActionResult Delete([FromRoute] int id)
+	{
+		var artist = dbContext.Artist.Find(id);
+	
+		if (artist == null)
+		{
+			return NotFound($"Artist with Id: {id} not found!");
+		}
+	
+		dbContext.Artist.Remove(artist);
+		dbContext.SaveChanges();
+	
+		// Map the Domain Model to DTO
+		var artistDto = new ArtistDto
+		{
+			ArtistId = artist.ArtistId,
+			FirstName = artist.FirstName,
+			LastName = artist.LastName,
+			Name = artist.Name,
+			Biography = artist.Biography
+		};
+	
+		return Ok(artistDto);
+	}
+```
+
+We Get the ``ArtistId`` from the Route and then do a ``Find()`` to see if the ``Artist`` exists.
+
+If it does we delete the Domain Model object with.
+
+```bash
+	dbContext.Artist.Remove(artist);
+	dbContext.SaveChanges();
+```
+
+We return the ``artistDto`` that was deleted.
+
+This has completed all of our CRUD operations for our ``Artist`` Domain Model.

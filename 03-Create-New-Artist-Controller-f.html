@@ -173,7 +173,7 @@ blockquote {
 <blockquote>
 <p>[Route(&quot;{id:int}&quot;)]</p>
 </blockquote>
-<p><strong>Note:</strong> the parameter name (<code>id</code>) in the Route <strong>must</strong> match the method's input parameter (see below).</p>
+<p><strong>Note:</strong> the parameter name (<code>id</code>) in the Route <strong>must</strong> match the method's input parameter name (see below).</p>
 <pre class="prettyprint"><code><div>    [Route(<span class="hljs-string">"{id:int}"</span>)]
     public async Task&lt;IActionResult&gt; GetById([FromRoute] int id)
     {
@@ -216,6 +216,271 @@ blockquote {
 <pre class="prettyprint"><code><div>    <span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"An Artist with Name: {name} wasn't found!"</span>);
 </div></code></pre>
 <p><img src="assets/images/not-found.jpg" alt="Not Found" title="Not Found"></p>
+<h2 id="understanding-data-transfer-objects-and-domain-models">Understanding Data Transfer Objects and Domain Models</h2>
+<p><code>DTO's</code> or <code>Domain Transfer Objects</code> are objects that are used to transfer data between different components of an application.</p>
+<p>They are simple objects that typically contain a subset of the properties in a Domain model or Entity and are designed to used for a specific purpose such as transferring data over the network or between layers of an application.</p>
+<p><img src="assets/images/dtos.jpg" alt="Domain Transfer Objects" title="Domain Transfer Objects"></p>
+<p>In this diagram we have our API and database. We use the Domain Model to move data between the API and Database. Because we are using Entity Framework our Domain Models have a mapping to the Database and the API. When you use EntityFramework to talk to a table it gives us the Domain Model because the DbContext only knows about the Domain Model. Because we have the Domain Model within the API it is a good practice to add a layer of Domain Transfer Objects (DTO's) and these are what we send back to the Client. So we should never send the Domain Models back to the client but we send the DTO's instead.</p>
+<p>Once the DbContext is able to supply with a list of Domain Models we then do a mapping between the Domain Model and the DTO so we can send the DTO back to the client.</p>
+<p>If it is information coming from the client, e.g. add a new resource then the client receives a DTO which we then convert from DTO to Domain Model and then we send the Domain Model to the Database using Entity Framework.</p>
+<h3 id="advantages-of-domain-transfer-models">Advantages of Domain Transfer Models</h3>
+<ul>
+<li>Separation of concerns</li>
+<li>Performance</li>
+<li>Security</li>
+<li>Versioning</li>
+</ul>
+<p>Domain Models could have more properties and differently named properties that we don't want to expose to our client.</p>
+<p>You can improve performance of the application because we only retrieve the data that we need to send back to the client, not whole Entities.</p>
+<p>DTO's help with security by not exposing all of the information to a client. You can reduce the risk of not sending sensitive data to unauthorised users.</p>
+<h2 id="using-data-transfer-objects">Using Data Transfer Object's</h2>
+<p>If you look at our <code>GetAll()</code> Action method you will see that we are using Domain Models to send data to the client.</p>
+<p>We need to change this to stop exposing Domain Models to the client.</p>
+<p>While you are learning how to use DTO's it is helpful to add comments to the Action method to show exactly what you are doing.</p>
+<pre class="prettyprint"><code><div>	// GET: https://localhost:1234/api/artists
+	[HttpGet]
+	public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">GetAll</span></span>()
+	{
+		// GET data from the database - Domain Model
+		var artists = await dbContext.Artist.ToListAsync();
+	
+		// MAP Domain Model to DTO
+	
+		// Return the DTO back to the client
+		<span class="hljs-built_in">return</span> Ok(artists);
+	}
+</div></code></pre>
+<p>We begin by creating a separate folder in the <code>Models</code> folder named <code>DTO</code>.</p>
+<p>Add a class named <code>ArtistDto</code>.</p>
+<pre class="prettyprint"><code><div>    public class ArtistDto
+    {
+        public int ArtistId { get; <span class="hljs-built_in">set</span>; } // identity field
+
+        public string? FirstName { get; <span class="hljs-built_in">set</span>; }
+
+        public string LastName { get; <span class="hljs-built_in">set</span>; }
+        
+        public string Name { get; <span class="hljs-built_in">set</span>; }
+
+        public string? Biography { get; <span class="hljs-built_in">set</span>; }
+    }
+</div></code></pre>
+<p>In this case we are creating a copy of the Artist Domain Model. By creating the <code>ArtistDto</code> we are decoupling our Artist Domain Model from the View layer of the API.</p>
+<p>These are the modified Action methods from the <code>ArtistsController</code>.</p>
+<pre class="prettyprint"><code><div>	// GET: https://localhost:1234/api/artists
+	[HttpGet]
+	public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">GetAll</span></span>()
+	{
+		// GET data from the database - Domain Model
+		var artists = await dbContext.Artist.ToListAsync();
+	
+		// MAP Domain Model to DTO
+		var artistsDto = new List&lt;ArtistDto&gt;();
+	
+		foreach (var artist <span class="hljs-keyword">in</span> artists)
+		{
+			artistsDto.Add(new <span class="hljs-function"><span class="hljs-title">ArtistDto</span></span>()
+			{
+				ArtistId = artist.ArtistId,
+				FirstName = artist.FirstName,
+				LastName = artist.LastName,
+				Name = artist.Name,
+				Biography = artist.Biography
+			});
+		}
+	
+		// Return the DTO back to the client
+		<span class="hljs-built_in">return</span> Ok(artistsDto);
+	}
+	
+	// GET: https://localhost:1234/api/artists/114
+	[HttpGet]
+	[Route(<span class="hljs-string">"{id:int}"</span>)]
+	public async Task&lt;IActionResult&gt; GetById([FromRoute] int id)
+	{
+		// GET Artist Domain mode from database
+		var artist = await dbContext.Artist.FirstOrDefaultAsync(a =&gt; a.ArtistId == id);
+	
+		<span class="hljs-keyword">if</span> (artist == null)
+		{
+			<span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"An Artist with Id: {id} wasn't found!"</span>);
+		}
+	
+		// Map Artist Domain model to ArtistDto
+		var artistDto = new ArtistDto 
+		{
+			ArtistId = artist.ArtistId,
+			FirstName = artist.FirstName,
+			LastName = artist.LastName,
+			Name = artist.Name,
+			Biography = artist.Biography
+		};
+	
+		// Return the DTO back to the client 
+		<span class="hljs-built_in">return</span> Ok(artistDto);
+	}
+</div></code></pre>
+<h3 id="creating-a-new-artist">Creating a new Artist</h3>
+<p>As we are going to use DTO's the first thing we will do is create an ArtistDto</p>
+<p>We use the POST verb to create a new <code>Artist</code>.</p>
+<pre class="prettyprint"><code><div>	// POST: https://localhost:1234/api/artists
+	[HttpPost]
+	public async Task&lt;IActionResult&gt; Create([FromBody] AddArtistDto addArtistDto)
+	{
+		// Map DTO to Domain Model
+		var artist = new Artist
+		{
+			FirstName = addArtistDto.FirstName,
+			LastName = addArtistDto.LastName,
+			Name = addArtistDto.Name,
+			Biography = addArtistDto.Biography
+		};
+	
+		// Use Domain Model to create Artist
+		await dbContext.Artist.AddAsync(artist);
+		await dbContext.SaveChangesAsync();
+	
+		// Map Domain model back to DTO
+		var artistDto = new ArtistDto
+		{
+			ArtistId = artist.ArtistId,
+			FirstName = artist.FirstName,
+			LastName = artist.LastName,
+			Name = artist.Name,
+			Biography = artist.Biography
+		};
+	
+		<span class="hljs-built_in">return</span> CreatedAtAction(nameof(GetById), new {id = artistDto.ArtistId}, artistDto );
+	}
+</div></code></pre>
+<p>In the method statement we are using the [FromBody] attribute because the data is being posted from the client.</p>
+<p>The type of Body we are receiving is from the <code>AddArtistDto</code> DTO object. This object doesn't have an ArtistId.</p>
+<pre class="prettyprint"><code><div>    // POST: https://localhost:1234/api/artists
+	[HttpPost]
+	public async Task&lt;IActionResult&gt; Create([FromBody] AddArtistDto addArtistDto)
+	{
+        ...
+</div></code></pre>
+<p>The first thing we have to do is Map the DTO to a Domain Model so we can work with the <code>DbContext</code> to send the data to the database.</p>
+<pre class="prettyprint"><code><div>	// Map DTO to Domain Model
+	var artist = new Artist
+	{
+		FirstName = addArtistDto.FirstName,
+		LastName = addArtistDto.LastName,
+		Name = addArtistDto.Name,
+		Biography = addArtistDto.Biography
+	};
+</div></code></pre>
+<p>Now we use the Domain Model to Add the <code>Artist</code> to the database</p>
+<pre class="prettyprint"><code><div>    // Use Domain Model to create Artist
+    await dbContext.Artist.AddAsync(artist);
+    await dbContext.SaveChangesAsync();
+</div></code></pre>
+<p>After this we are going to Map the Domain Model back to the <code>Artist</code> DTO so that we can see the results.</p>
+<pre class="prettyprint"><code><div>    // Map Domain model back to DTO
+    var artistDto = new ArtistDto
+    {
+        ArtistId = artist.ArtistId,
+        FirstName = artist.FirstName,
+        LastName = artist.LastName,
+        Name = artist.Name,
+        Biography = artist.Biography
+    };
+</div></code></pre>
+<p>Now we are ready to return the POST results.</p>
+<pre class="prettyprint"><code><div>    <span class="hljs-built_in">return</span> CreatedAtAction(nameof(GetById), new {id = artistDto.ArtistId}, artistDto );
+</div></code></pre>
+<p>At first looks this return statement looks strange. We aren't using <code>return OK()</code> because that returns a <code>200</code> response and the POST needs to return a <strong>201</strong> response. We do that with a <code>return CreatedAtAction()</code> method. The <code>CreatedAtAction()</code> method needs an Action name to execute so we do this by using the <code>GetById()</code>  Action method.</p>
+<p>Next we create a new object because want to pass the <code>ArtistId</code> property of the created object.</p>
+<p>Finally we need to pass the new <code>artistDto</code> object that we created in the previous step.</p>
+<p><img src="assets/images/post-response.jpg" alt="POST Response" title="POST Response"></p>
+<p>There is one more interesting point to note in the Header.</p>
+<blockquote>
+<p>location: <a href="https://localhost:7262/api/Artists/864">https://localhost:7262/api/Artists/864</a></p>
+</blockquote>
+<p>It is the <code>GetById()</code> response and we can use this Url to find the newly created Artist object.</p>
+<p>This is why we need to send back a <strong>201</strong> response rather than the <strong>200</strong> response that would only send back a message.</p>
+<h2 id="updating-an-artist">Updating an Artist</h2>
+<p>We use an <code>ArtistId</code> that we retrieve from the Route and an <code>Artist</code> object returned from the Body.</p>
+<pre class="prettyprint"><code><div>	[HttpPut]
+	[Route(<span class="hljs-string">"{id:int}"</span>)]
+	public async Task&lt;IActionResult&gt; Update([FromRoute] int id, [FromBody] UpdateArtistDto updateArtistDto)
+	{
+		var artist = dbContext.Artist.Find(id);
+	
+		<span class="hljs-keyword">if</span> (artist == null)
+		{
+			<span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"Artist with Id: {id} not found!"</span>);
+		}
+	
+		// Map DTO to Domain Model
+		artist.FirstName = updateArtistDto.FirstName;
+		artist.LastName = updateArtistDto.LastName;
+		artist.Name = updateArtistDto.Name;
+		artist.Biography = updateArtistDto.Biography;
+	
+		await dbContext.SaveChangesAsync();
+	
+		// Convert Domain Model to DTO
+		var artistDto = new ArtistDto
+		{
+			ArtistId = artist.ArtistId,
+			FirstName = artist.FirstName,
+			LastName = artist.LastName,
+			Name = artist.Name,
+			Biography = artist.Biography
+		};
+	
+		<span class="hljs-built_in">return</span> Ok(artistDto);
+	}
+</div></code></pre>
+<p>Once again we will create a new DTO to bring in the <code>Artist</code> object named <code>UpdateArtistDto</code> that contains all of the properties that we want to update.</p>
+<p>We check to see if the <code>ArtistId</code> coming from the Route exists.</p>
+<pre class="prettyprint"><code><div>	var artist = dbContext.Artist.Find(id);
+</div></code></pre>
+<p>Then we map the DTO to the Domain Model and we are ready to update the <code>Artist</code> object.</p>
+<pre class="prettyprint"><code><div>	await dbContext.SaveChangesAsync();
+</div></code></pre>
+<p>Because we have used the <code>dbContext</code> to find the <code>Artist</code> object previously means that the object is still in context so the statement above will update the object with a single statement.</p>
+<p>We then convert the Domain Model back into a DTO and return it with an <code>OK(artistDto)</code> method to return a response of <strong>200</strong>.</p>
+<h2 id="deleting-an-artist">Deleting an Artist</h2>
+<p>We use a Delete verb.</p>
+<p><strong>Note:</strong> that we don't have an asynchronous <code>Remove()</code> method so the delete is carried out synchronously.</p>
+<pre class="prettyprint"><code><div>	// DELETE: https://localhost:1234/api/artists/114
+	[HttpDelete]
+	[Route(<span class="hljs-string">"{id:int}"</span>)]
+	public IActionResult Delete([FromRoute] int id)
+	{
+		var artist = dbContext.Artist.Find(id);
+	
+		<span class="hljs-keyword">if</span> (artist == null)
+		{
+			<span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"Artist with Id: {id} not found!"</span>);
+		}
+	
+		dbContext.Artist.Remove(artist);
+		dbContext.SaveChanges();
+	
+		// Map the Domain Model to DTO
+		var artistDto = new ArtistDto
+		{
+			ArtistId = artist.ArtistId,
+			FirstName = artist.FirstName,
+			LastName = artist.LastName,
+			Name = artist.Name,
+			Biography = artist.Biography
+		};
+	
+		<span class="hljs-built_in">return</span> Ok(artistDto);
+	}
+</div></code></pre>
+<p>We Get the <code>ArtistId</code> from the Route and then do a <code>Find()</code> to see if the <code>Artist</code> exists.</p>
+<p>If it does we delete the Domain Model object with.</p>
+<pre class="prettyprint"><code><div>	dbContext.Artist.Remove(artist);
+	dbContext.SaveChanges();
+</div></code></pre>
+<p>We return the <code>artistDto</code> that was deleted.</p>
+<p>This has completed all of our CRUD operations for our <code>Artist</code> Domain Model.</p>
 
 
 
