@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Repository Pattern</title>
+<link href="assets/css/bootstrap.css" rel="stylesheet">
+<!-- Custom styles for this template -->
+<link href="assets/css/starter-template.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+<style type="text/css">
+html {
+	font-size: 90.0%;
+}
+
+h2 {
+	margin-top: 60px;
+}
+
+h4, h3 {
+	padding-top: 40px!;		
+}
+
+p {
+	font-size: 1.2em;
+}
+h4 {
+	font-size: 1.4em;
+}
+
+img, pre.prettyprint {
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+    color:#007bff;
+
+}
+blockquote {
+    border-left: 4px solid #999;
+    padding-left: 1rem;
+    page-break-inside: avoid;
+}
+</style>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Building ASP.Net Core Web API's</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Repository Pattern <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="container">
+    <div class="starter-template">
+
+
+<h1 id="the-repository-pattern-and-automapper">The Repository Pattern and Automapper</h1>
+<h2 id="the-repository-pattern">The Repository pattern</h2>
+<p><img src="assets/images/repository-pattern.jpg" alt="The Repository pattern" title="The Repository pattern"></p>
+<p>The Repository pattern is a design pattern that helps separate the data access layer from the rest of the application.</p>
+<p>It provides a standard interface which is an interface class for accessing and managing data in a data store such as a database without exposing the underlying implementation detail to the rest of the application.</p>
+<p>The Repository pattern typically involves creating an abstraction layer between the application and the data store which is implemented by a concrete Repository class.</p>
+<p>The Repository class is responsible for creating CRUD operations on the data store and it exposes a set of methods that the application can use to interact with the data.</p>
+<p><img src="assets/images/repository-and-dbcontext.jpg" alt="The Repository and dbContext layer" title="The Repository and dbContext layer"></p>
+<p>At the moment in our application we have the dbContext class injected inside the controller and it is the controller that is talking directly to the database using that context. That is not best practice and using the repository design pattern we can eliminate that and use an abstraction layer by adding that abstraction layer in between. Repositories can be added in between the controller and the database so that all the operations on the database is handled by the Repository.</p>
+<p>The <code>dbContext</code> class is injected inside the Repository rather that inside the controller and it is the Repository that is then injected in the controller. So the controller will use the Repository instead of using the dbContext.</p>
+<p>By doing that the controller now has no awareness of what is being called through the dbContext weather is is a SQL Server database, a MongoDb database or other database. It has no idea of where the data is coming from. It is just using the interface method exposed by the interface Repository and the implementation is hidden behind the implementation Repository.</p>
+<p>Using that you can switch the logic and the data store behind the implementation Repository, for example you can use EntityFramework core to store your changes in a database or you can just use an in memory database by creating another  implementation Repository.</p>
+<p>All of those changes are happening behind the Repository and the controller has no knowledge about the data store at all.</p>
+<p>By using the Repository pattern in ASP.Net Core developers can achieve several benefits. They are decoupling the data access layer from the rest of the application which makes it easier to maintain and test the application providing a standard interface for accessing data which improves the consistency and readability of the code. Now every connection to the database goes through the Repository.</p>
+<p>We can also improve the performance of the application by using caching or other optimisation techniques supporting multiple data sources which allow the application to switch between different data sources without affecting the application logic.</p>
+<p>Overall the Repository pattern is powerful tool for managing data in ASP.Net Core applications.</p>
+<h3 id="implementing-the-repository">Implementing the Repository</h3>
+<p>We are using SQL Server so our Repository folder will be be named <code>SqlRepository</code>.</p>
+<p>To implement the Repository we have to create an Interface Repository. In our case this will be the <code>IArtistRepository</code> and after we have exposed the interface which exposes the CRUD operations we would then need an implementation, a concrete Repository that would be used to implement all of these methods for us. This Repository will be named, <code>ArtistRepository</code>.</p>
+<p>Doing this will make it easy to swap out our data store, for example, an in-memory database in future.</p>
+<h4 id="iartistrepository">IArtistRepository</h4>
+<p>Create a new Interface class named <code>IArtistRepository</code>.</p>
+<pre class="prettyprint"><code><div>    public interface IArtistRepository
+    {
+        Task&lt;List&lt;Artist&gt;&gt; GetAllAsync();
+
+        Task&lt;Artist?&gt; GetByIdAsync(int id);
+
+        Task&lt;Artist&gt; CreateAsync(Artist artist);
+
+        Task&lt;Artist?&gt; UpdateAsync(int id, Artist artist);
+
+        Task&lt;Artist?&gt; DeleteAsync(int id);
+    }
+</div></code></pre>
+<p>In the <code>IArtistRepository</code> we will end all method names with <code>Async</code> to make them different to the methods in the <code>Artist</code> controller.</p>
+<p>Now create the <code>ArtistRepository</code> class and implement the Interface.</p>
+<pre class="prettyprint"><code><div>namespace RecordDb.API.SQLRepository
+{
+    public class ArtistRepository : IArtistRepository
+    {
+    }
+}
+</div></code></pre>
+<p>If you mouse over <code>IArtistRepository</code> it will show this.</p>
+<p><img src="assets/images/artist-repository.jpg" alt="Errors on the page" title="Errors on the page"></p>
+<p>It is asking you to implement the Interface methods.</p>
+<p>You can do this by a mouseover  the <code>IArtistRepository</code> word and click <strong>Ctrl-.</strong>, you will see the option <code>Implement Interface</code>. Select this and it will scaffold all of the methods that you have in your <code>IArtistInterface</code>.</p>
+<p>You will end up with this.</p>
+<pre class="prettyprint"><code><div>    public class ArtistRepository : IArtistRepository
+    {
+        public Task&lt;Artist&gt; CreateAsync(Artist artist)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task&lt;Artist?&gt; DeleteAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task&lt;List&lt;Artist&gt;&gt; <span class="hljs-function"><span class="hljs-title">GetAllAsync</span></span>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task&lt;Artist?&gt; GetByIdAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task&lt;Artist?&gt; UpdateAsync(int id, Artist artist)
+        {
+            throw new NotImplementedException();
+        }
+    }
+</div></code></pre>
+<p><strong>Note:</strong> it has made Async methods but left out the keyword <code>async</code>. You will have to manually add these to each method.</p>
+<p>Now we will work on our <code>ArtistRepository</code> class.</p>
+<p>The first thing to do is add the <code>RecordDbContext</code> to the <code>ArtistRepository</code> constructor.</p>
+<pre class="prettyprint"><code><div>    private <span class="hljs-built_in">readonly</span> RecordDbContext dbContext;
+
+    public ArtistRepository(RecordDbContext dbContext)
+    {
+        this.dbContext = dbContext;
+    }
+</div></code></pre>
+<h3 id="the-artistrepository-getallasync-method">The ArtistRepository GetAllAsync() method</h3>
+<pre class="prettyprint"><code><div>    public async Task&lt;List&lt;Artist&gt;&gt; <span class="hljs-function"><span class="hljs-title">GetAllAsync</span></span>()
+    {
+        <span class="hljs-built_in">return</span> await dbContext.Artist.ToListAsync();
+    }
+</div></code></pre>
+<p>We removed this <code>dbContext</code> statement from the Artist Controllers <code>GetAll()</code> method. We then changed the statement in the <code>GetAll()</code> method to this.</p>
+<pre class="prettyprint"><code><div>    // GET data from the database - Domain Model
+    var artists = await artistRepository.GetAllAsync();
+</div></code></pre>
+<h3 id="artistscontroller-getall-method">ArtistsController GetAll() method</h3>
+<pre class="prettyprint"><code><div>	// GET: https://localhost:1234/api/artists
+	[HttpGet]
+	public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">GetAll</span></span>()
+	{
+		// GET data from the database - Domain Model
+		var artists = await artistRepository.GetAllAsync();
+	
+		// MAP Domain Model to DTO
+		var artistsDto = new List&lt;ArtistDto&gt;();
+	
+		foreach (var artist <span class="hljs-keyword">in</span> artists)
+		{
+			artistsDto.Add(new <span class="hljs-function"><span class="hljs-title">ArtistDto</span></span>()
+			{
+				ArtistId = artist.ArtistId,
+				FirstName = artist.FirstName,
+				LastName = artist.LastName,
+				Name = artist.Name,
+				Biography = artist.Biography
+			});
+		}
+	
+		// Return the DTO back to the client
+		<span class="hljs-built_in">return</span> Ok(artistsDto);
+	}
+</div></code></pre>
+<p>Basically, what we are doing in all of our CRUD methods is taking all <code>dbContext</code> calls from the <code>ArtistsController</code> class and placing them in the respective <code>ArtistRepository</code> class methods. We then rewrite the data calls in the <code>ArtistsController</code> class to connect to the <code>ArtistRepository</code> class and that class retrieves data from the data store and sends it back to the <code>ArtistsController</code> class.</p>
+<h3 id="inject-artistrepository-into-artistscontroller">Inject ArtistRepository into ArtistsController</h3>
+<p>Now we have the <code>GetAll()</code> method setup and ready to test. We have one more thing to do to get it working. we need to inject it into our application.</p>
+<p>Open <code>Program.cs</code> and after we inject the <code>RecordDbContext</code> we can also inject the <code>ArtistRepository</code>.</p>
+<pre class="prettyprint"><code><div>    builder.Services.AddScoped&lt;IArtistRepository, ArtistRepository&gt;();
+</div></code></pre>
+<p>Now we will inject the <code>artistRepository</code> into the <code>ArtistsController</code></p>
+<pre class="prettyprint"><code><div>    private <span class="hljs-built_in">readonly</span> RecordDbContext dbContext;
+    private <span class="hljs-built_in">readonly</span> IArtistRepository artistRepository;
+
+    public ArtistsController(RecordDbContext dbContext, IArtistRepository artistRepository)
+    {
+        this.dbContext = dbContext;
+        this.artistRepository = artistRepository;
+    }
+</div></code></pre>
+<p><strong>Note:</strong> we know that we have to remove the <code>dbContext</code> from the <code>ArtistsController</code> class. Leave it in the <code>ArtistsController</code> while we are working on the <code>ArtistRepository</code> class. Once we finish working on our CRUD methods in the <code>ArtistRepository</code> we can remove it. This will stop us from seeing errors in the Controller methods we haven't finished.</p>
+<p>Now we can inject the <code>ArtistRepository</code> into the <code>GetById()</code> method in <code>ArtistsController</code>.</p>
+<h3 id="artistscontroller-getbyid-method">ArtistsController GetById() method</h3>
+<pre class="prettyprint"><code><div>	// GET: https://localhost:1234/api/artists/114
+	[HttpGet]
+	[Route(<span class="hljs-string">"{id:int}"</span>)]
+	public async Task&lt;IActionResult&gt; GetById([FromRoute] int id)
+	{
+		// GET Artist Domain mode from database
+		var artist = await artistRepository.GetByIdAsync(id);
+	
+		<span class="hljs-keyword">if</span> (artist == null)
+		{
+			<span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"An Artist with Id: {id} wasn't found!"</span>);
+		}
+	
+		// Map Artist Domain model to ArtistDto
+		var artistDto = new ArtistDto
+		{
+			ArtistId = artist.ArtistId,
+			FirstName = artist.FirstName,
+			LastName = artist.LastName,
+			Name = artist.Name,
+			Biography = artist.Biography
+		};
+	
+		// Return the DTO back to the client 
+		<span class="hljs-built_in">return</span> Ok(artistDto);
+	}
+</div></code></pre>
+<h3 id="artistrepository-getbyidasync-method">ArtistRepository GetByIdAsync() method</h3>
+<pre class="prettyprint"><code><div>    public async Task&lt;Artist?&gt; GetByIdAsync(int id)
+    {
+        <span class="hljs-built_in">return</span> await dbContext.Artist.FirstOrDefaultAsync(a =&gt; a.ArtistId == id);
+    }
+</div></code></pre>
+<h3 id="artistscontroller-create-method">ArtistsController Create() method</h3>
+<pre class="prettyprint"><code><div>    // POST: https://localhost:1234/api/artists
+    [HttpPost]
+    public async Task&lt;IActionResult&gt; Create([FromBody] AddArtistDto addArtistDto)
+    {
+        // Map DTO to Domain Model
+        var artist = new Artist
+        {
+            FirstName = addArtistDto.FirstName,
+            LastName = addArtistDto.LastName,
+            Name = addArtistDto.Name,
+            Biography = addArtistDto.Biography
+        };
+
+        // Use Domain Model to create Artist
+        artist = await artistRepository.CreateAsync(artist);
+
+        // Map Domain model back to DTO
+        var artistDto = new ArtistDto
+        {
+            ArtistId = artist.ArtistId,
+            FirstName = artist.FirstName,
+            LastName = artist.LastName,
+            Name = artist.Name,
+            Biography = artist.Biography
+        };
+
+        <span class="hljs-built_in">return</span> CreatedAtAction(nameof(GetById), new { id = artistDto.ArtistId }, artistDto);
+    }
+</div></code></pre>
+<h3 id="artistrepository-createasync-method">ArtistRepository CreateAsync() method</h3>
+<pre class="prettyprint"><code><div>    public async Task&lt;Artist&gt; CreateAsync(Artist artist)
+    {
+        await dbContext.Artist.AddAsync(artist);
+        await dbContext.SaveChangesAsync();
+        
+        <span class="hljs-built_in">return</span> artist;
+    }
+</div></code></pre>
+<h3 id="artistscontroller-update-method">ArtistsController Update() method</h3>
+<pre class="prettyprint"><code><div>	[HttpPut]
+	[Route(<span class="hljs-string">"{id:int}"</span>)]
+	public async Task&lt;IActionResult&gt; Update([FromRoute] int id, [FromBody] UpdateArtistDto updateArtistDto)
+	{
+		// Map DTO to Domain Model
+		var artist = new Artist
+		{
+			FirstName = updateArtistDto.FirstName,
+			LastName = updateArtistDto.LastName,
+			Name = updateArtistDto.Name,
+			Biography = updateArtistDto.Biography
+		};
+	
+		artist = await artistRepository.UpdateAsync(id, artist);
+	
+		<span class="hljs-keyword">if</span> (artist == null)
+		{
+			<span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"Artist with Id: {id} wasn't found!"</span>);
+		}
+	
+		// Convert Domain Model to DTO
+		var artistDto = new ArtistDto
+		{
+			ArtistId = artist.ArtistId,
+			FirstName = artist.FirstName,
+			LastName = artist.LastName,
+			Name = artist.Name,
+			Biography = artist.Biography
+		};
+	
+		<span class="hljs-built_in">return</span> Ok(artistDto);
+	}
+</div></code></pre>
+<h3 id="artistrepository-updateasync-method">ArtistRepository UpdateAsync() method</h3>
+<pre class="prettyprint"><code><div>    public async Task&lt;Artist?&gt; UpdateAsync(int id, Artist artist)
+    {
+        var existingArtist = await dbContext.Artist.FirstOrDefaultAsync(b =&gt; b.ArtistId == id)  
+    
+        <span class="hljs-keyword">if</span> (existingArtist == null)
+        {
+            <span class="hljs-built_in">return</span> null;
+        }
+
+        existingArtist.FirstName = artist.FirstName;
+        existingArtist.LastName = artist.LastName;
+        existingArtist.Name = artist.Name;
+        existingArtist.Biography = artist.Biography 
+    
+        await dbContext.SaveChangesAsync()  
+    
+        <span class="hljs-built_in">return</span> existingArtist;
+    }
+</div></code></pre>
+<h3 id="artistscontroller-delete-method">ArtistsController Delete() method</h3>
+<pre class="prettyprint"><code><div>	// DELETE: https://localhost:1234/api/artists/114
+	[HttpDelete]
+	[Route(<span class="hljs-string">"{id:int}"</span>)]
+	public async Task&lt;IActionResult&gt; Delete([FromRoute] int id)
+	{
+		var artist = await artistRepository.DeleteAsync(id);
+	
+		<span class="hljs-keyword">if</span> (artist == null)
+		{
+			<span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"Artist with Id: {id} not found!"</span>);
+		}
+	
+		// Map the Domain Model to DTO
+		var artistDto = new ArtistDto
+		{
+			ArtistId = artist.ArtistId,
+			FirstName = artist.FirstName,
+			LastName = artist.LastName,
+			Name = artist.Name,
+			Biography = artist.Biography
+		};
+	
+		<span class="hljs-built_in">return</span> Ok(artistDto);
+	}
+</div></code></pre>
+<h3 id="artistrepository-deleteasync-method">ArtistRepository DeleteAsync() method</h3>
+<pre class="prettyprint"><code><div>public async Task&lt;Artist?&gt; DeleteAsync(int id)
+{
+    var artist = await dbContext.Artist.FindAsync(id);
+    <span class="hljs-keyword">if</span> (artist == null)
+    {
+        <span class="hljs-built_in">return</span> null;
+    }
+
+    dbContext.Artist.Remove(artist);
+    await dbContext.SaveChangesAsync();
+
+    <span class="hljs-built_in">return</span> artist;
+}
+</div></code></pre>
+<h3 id="finish-the-artistcontroller-constructor">Finish the ArtistController constructor</h3>
+<p>Remove the <code>dbContext</code> property from the <code>ArtistsController</code> class.</p>
+<pre class="prettyprint"><code><div>    private <span class="hljs-built_in">readonly</span> IArtistRepository artistRepository;
+
+    public ArtistsController(IArtistRepository artistRepository)
+    {
+        this.artistRepository = artistRepository;
+    }
+</div></code></pre>
+<p>This completes the decoupling of the data store from the <code>ArtistsController</code> class.</p>
+
+
+
+</div><!-- starter-template -->
+</div><!-- /.container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"/>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
+</body>
+</html>

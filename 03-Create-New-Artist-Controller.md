@@ -495,15 +495,15 @@ We then convert the Domain Model back into a DTO and return it with an ``OK(arti
 
 We use a Delete verb.
 
-**Note:** that we don't have an asynchronous ``Remove()`` method so the delete is carried out synchronously.
+**Note:** that we don't have an asynchronous ``Remove()`` method so the delete is carried out synchronously. All other method calls can still be done asynchronously.
 
 ```bash
 	// DELETE: https://localhost:1234/api/artists/114
 	[HttpDelete]
 	[Route("{id:int}")]
-	public IActionResult Delete([FromRoute] int id)
+	public async Task<IActionResult> Delete([FromRoute] int id)
 	{
-		var artist = dbContext.Artist.Find(id);
+		var artist = await dbContext.Artist.FindAsync(id);
 	
 		if (artist == null)
 		{
@@ -511,7 +511,7 @@ We use a Delete verb.
 		}
 	
 		dbContext.Artist.Remove(artist);
-		dbContext.SaveChanges();
+		await dbContext.SaveChangesAsync();
 	
 		// Map the Domain Model to DTO
 		var artistDto = new ArtistDto
@@ -527,13 +527,13 @@ We use a Delete verb.
 	}
 ```
 
-We Get the ``ArtistId`` from the Route and then do a ``Find()`` to see if the ``Artist`` exists.
+We Get the ``ArtistId`` from the Route and then do a ``FindAsync()`` to see if the ``Artist`` exists.
 
 If it does we delete the Domain Model object with.
 
 ```bash
 	dbContext.Artist.Remove(artist);
-	dbContext.SaveChanges();
+	await dbContext.SaveChangesAsync();
 ```
 
 We return the ``artistDto`` that was deleted.

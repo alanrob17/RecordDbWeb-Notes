@@ -736,13 +736,13 @@ code {
 <p>We then convert the Domain Model back into a DTO and return it with an <code>OK(artistDto)</code> method to return a response of <strong>200</strong>.</p>
 <h2 id="deleting-an-artist">Deleting an Artist</h2>
 <p>We use a Delete verb.</p>
-<p><strong>Note:</strong> that we don't have an asynchronous <code>Remove()</code> method so the delete is carried out synchronously.</p>
+<p><strong>Note:</strong> that we don't have an asynchronous <code>Remove()</code> method so the delete is carried out synchronously. All other method calls can still be done asynchronously.</p>
 <pre class="hljs"><code><div>	// DELETE: https://localhost:1234/api/artists/114
 	[HttpDelete]
 	[Route(<span class="hljs-string">"{id:int}"</span>)]
-	public IActionResult Delete([FromRoute] int id)
+	public async Task&lt;IActionResult&gt; Delete([FromRoute] int id)
 	{
-		var artist = dbContext.Artist.Find(id);
+		var artist = await dbContext.Artist.FindAsync(id);
 	
 		<span class="hljs-keyword">if</span> (artist == null)
 		{
@@ -750,7 +750,7 @@ code {
 		}
 	
 		dbContext.Artist.Remove(artist);
-		dbContext.SaveChanges();
+		await dbContext.SaveChangesAsync();
 	
 		// Map the Domain Model to DTO
 		var artistDto = new ArtistDto
@@ -765,10 +765,10 @@ code {
 		<span class="hljs-built_in">return</span> Ok(artistDto);
 	}
 </div></code></pre>
-<p>We Get the <code>ArtistId</code> from the Route and then do a <code>Find()</code> to see if the <code>Artist</code> exists.</p>
+<p>We Get the <code>ArtistId</code> from the Route and then do a <code>FindAsync()</code> to see if the <code>Artist</code> exists.</p>
 <p>If it does we delete the Domain Model object with.</p>
 <pre class="hljs"><code><div>	dbContext.Artist.Remove(artist);
-	dbContext.SaveChanges();
+	await dbContext.SaveChangesAsync();
 </div></code></pre>
 <p>We return the <code>artistDto</code> that was deleted.</p>
 <p>This has completed all of our CRUD operations for our <code>Artist</code> Domain Model.</p>
