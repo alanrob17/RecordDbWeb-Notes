@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>04-Repository-Pattern-and-Automapper.md</title>
+<title>04-Repository-Pattern-and-AutoMapper.md</title>
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 
 <style>
@@ -365,7 +365,7 @@ code {
           : 'default'
     });
   </script>
-<h1 id="the-repository-pattern-and-automapper">The Repository Pattern and Automapper</h1>
+<h1 id="the-repository-pattern-and-AutoMapper">The Repository Pattern and AutoMapper</h1>
 <h2 id="the-repository-pattern">The Repository pattern</h2>
 <p><img src="assets/images/repository-pattern.jpg" alt="The Repository pattern" title="The Repository pattern"></p>
 <p>The Repository pattern is a design pattern that helps separate the data access layer from the rest of the application.</p>
@@ -373,9 +373,9 @@ code {
 <p>The Repository pattern typically involves creating an abstraction layer between the application and the data store which is implemented by a concrete Repository class.</p>
 <p>The Repository class is responsible for creating CRUD operations on the data store and it exposes a set of methods that the application can use to interact with the data.</p>
 <p><img src="assets/images/repository-and-dbcontext.jpg" alt="The Repository and dbContext layer" title="The Repository and dbContext layer"></p>
-<p>At the moment in our application we have the dbContext class injected inside the controller and it is the controller that is talking directly to the database using that context. That is not best practice and using the repository design pattern we can eliminate that and use an abstraction layer by adding that abstraction layer in between. Repositories can be added in between the controller and the database so that all the operations on the database is handled by the Repository.</p>
-<p>The <code>dbContext</code> class is injected inside the Repository rather that inside the controller and it is the Repository that is then injected in the controller. So the controller will use the Repository instead of using the dbContext.</p>
-<p>By doing that the controller now has no awareness of what is being called through the dbContext weather is is a SQL Server database, a MongoDb database or other database. It has no idea of where the data is coming from. It is just using the interface method exposed by the interface Repository and the implementation is hidden behind the implementation Repository.</p>
+<p>At the moment in our application we have the dbContext class injected inside the Controller and it is the Controller that is talking directly to the database using that context. That is not best practice and using the repository design pattern we can eliminate that and use an abstraction layer by adding that abstraction layer in between. Repositories can be added in between the controller and the database so that all the operations on the database is handled by the Repository.</p>
+<p>The <code>dbContext</code> class is injected inside the Repository rather that inside the Controller and it is the Repository that is then injected into the Controller. So the Controller will use the Repository instead of using the <code>dbContext</code>.</p>
+<p>By doing that the Controller now has no awareness of what is being called through the <code>dbContext</code> wether it is a SQL Server database, a MongoDB database or another type of database. It has no idea of where the data is coming from. It is just using the Interface method exposed by the Interface Repository and the implementation is hidden behind the implementation Repository.</p>
 <p>Using that you can switch the logic and the data store behind the implementation Repository, for example you can use EntityFramework core to store your changes in a database or you can just use an in memory database by creating another  implementation Repository.</p>
 <p>All of those changes are happening behind the Repository and the controller has no knowledge about the data store at all.</p>
 <p>By using the Repository pattern in ASP.Net Core developers can achieve several benefits. They are decoupling the data access layer from the rest of the application which makes it easier to maintain and test the application providing a standard interface for accessing data which improves the consistency and readability of the code. Now every connection to the database goes through the Repository.</p>
@@ -444,7 +444,7 @@ code {
 </div></code></pre>
 <p><strong>Note:</strong> it has made Async methods but left out the keyword <code>async</code>. You will have to manually add these to each method.</p>
 <p>Now we will work on our <code>ArtistRepository</code> class.</p>
-<p>The first thing to do is add the <code>RecordDbContext</code> to the <code>ArtistRepository</code> constructor.</p>
+<p>The first thing to do is inject the <code>RecordDbContext</code> into the <code>ArtistRepository</code> constructor.</p>
 <pre class="hljs"><code><div>    private <span class="hljs-built_in">readonly</span> RecordDbContext dbContext;
 
     public ArtistRepository(RecordDbContext dbContext)
@@ -513,7 +513,7 @@ code {
 	[Route(<span class="hljs-string">"{id:int}"</span>)]
 	public async Task&lt;IActionResult&gt; GetById([FromRoute] int id)
 	{
-		// GET Artist Domain mode from database
+		// GET Artist Domain model from database
 		var artist = await artistRepository.GetByIdAsync(id);
 	
 		<span class="hljs-keyword">if</span> (artist == null)
@@ -663,7 +663,7 @@ code {
 <h3 id="artistrepository-deleteasync-method">ArtistRepository DeleteAsync() method</h3>
 <pre class="hljs"><code><div>public async Task&lt;Artist?&gt; DeleteAsync(int id)
 {
-    var artist = await dbContext.Artist.FindAsync(id);
+    var artist = await dbContext.Artist.FindAsync(id); 
     <span class="hljs-keyword">if</span> (artist == null)
     {
         <span class="hljs-built_in">return</span> null;
@@ -685,6 +685,195 @@ code {
     }
 </div></code></pre>
 <p>This completes the decoupling of the data store from the <code>ArtistsController</code> class.</p>
+<h2 id="AutoMapper">AutoMapper</h2>
+<p>AutoMapper is a popular object-to-object mapping library for ASP.Net Core applications. It allows us to simplify the mapping process between two objects with different structures by defining mappings between their properties.</p>
+<p>With the help of AutoMapper you can create mappings between the source and destination objects in a centralised location which can be used throughout your application.</p>
+<p>This reduces the need for manually copying values between objects and you can help to make your code more maintainable and less error prone.</p>
+<p>In ASP.Net Core AutoMapper is commonly used to map between Domain Models and View Models or DTO models.</p>
+<p>All properties must have the same name in source and destination models but there is also a way that we can match fields that don't have the same named properties.</p>
+<h3 id="installing-packages">Installing packages</h3>
+<ul>
+<li>Install-Package AutoMapper</li>
+</ul>
+<h3 id="using-AutoMapper">Using AutoMapper</h3>
+<p>We start off by creating Mapping Profile Models.</p>
+<p>Create a folder, <code>Mappings</code>.</p>
+<p>Create a new class, <code>AutoMapperProfiles.cs</code>. This class inherits a class from the AutoMapper package named <strong>Profile</strong>.</p>
+<pre class="hljs"><code><div>namespace RecordDb.API.Mappings
+{
+    public class AutoMapperProfiles: Profile
+    {
+        public <span class="hljs-function"><span class="hljs-title">AutoMapperProfiles</span></span>()
+        {
+            
+        }
+    }
+}
+</div></code></pre>
+<p>All our mappings go within the constructor.</p>
+<p>AutoMapper works on <code>Source</code> to <code>Destination</code> (left to right).</p>
+<p>The first mapping we will create will be the <code>Artist</code> to <code>ArtistDto</code> mapping.</p>
+<pre class="hljs"><code><div>    public <span class="hljs-function"><span class="hljs-title">AutoMapperProfiles</span></span>()
+    {
+        CreateMap&lt;Artist, ArtistDto&gt;();
+    }
+</div></code></pre>
+<p>So our Source is the Domain Model, <code>Artist</code> and our destination is the DTO, <code>ArtistId</code>. Fortunately, there is a reverse mapping option as well.</p>
+<pre class="hljs"><code><div>    public <span class="hljs-function"><span class="hljs-title">AutoMapperProfiles</span></span>()
+    {
+        CreateMap&lt;Artist, ArtistDto&gt;().ReverseMap();
+    }
+</div></code></pre>
+<p>This allows us to reverse the mapping without having to write 2 lines of mapping code.</p>
+<p>Now imagine that in our Source Domain Model, <code>Artist</code> our primary key is <code>ArtistId</code> and in our Destination DTO, <code>ArtistDto</code> our primary key is <code>Id</code>.</p>
+<p>We can get around this with.</p>
+<pre class="hljs"><code><div>    public <span class="hljs-function"><span class="hljs-title">AutoMapperProfiles</span></span>()
+    {
+        CreateMap&lt;Artist, ArtistDto&gt;()
+            .ForMember(x =&gt; x.Id, opt.MapFrom(x =&gt; x.ArtistId))
+            .ReverseMap();
+    }
+</div></code></pre>
+<p>Where <code>x =&gt; x.ArtistId</code> is the primary key in our Source Domain Model and <code>Id</code> which is our Destination DTO.</p>
+<p>We want to use some options so <code>opt.MapFrom(x =&gt; x.ArtistId)</code>. Where <code>opt.MapFrom()</code> needs the source value which is our DTO which has the primary key of <code>Id</code>.</p>
+<p>We are using <code>.ReverseMap()</code> so this will work both ways.</p>
+<p>In our case our property names are the same so we don't have to do this.</p>
+<p>Once again we will have to inject the AutoMapper Profile into the <code>ArtistsController</code>.</p>
+<p>So in <code>Program.cs</code> after we inject our repositories.</p>
+<pre class="hljs"><code><div>    builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+</div></code></pre>
+<p>When the program is executed it will load all the Profiles from AutoMapperProfiles and inject them into our <code>ArtistsController</code> constructor.</p>
+<pre class="hljs"><code><div>    private <span class="hljs-built_in">readonly</span> IArtistRepository artistRepository;
+    private <span class="hljs-built_in">readonly</span> IMapper mapper;
+
+    public ArtistsController(IArtistRepository artistRepository, IMapper mapper)
+    {
+        this.artistRepository = artistRepository;
+        this.mapper = mapper;
+    }
+</div></code></pre>
+<p>Now we can inject <code>mapper</code> into our <code>GetAll()</code> method in the <code>ArtistsController</code>.</p>
+<p>Comment this code for the moment.</p>
+<pre class="hljs"><code><div>    //// MAP Domain Model to DTO
+    //var artistsDto = new List&lt;ArtistDto&gt;();
+
+    //foreach (var artist <span class="hljs-keyword">in</span> artists)
+    //{
+    //    artistsDto.Add(new ArtistDto()
+    //    {
+    //        ArtistId = artist.ArtistId,
+    //        FirstName = artist.FirstName,
+    //        LastName = artist.LastName,
+    //        Name = artist.Name,
+    //        Biography = artist.Biography
+    //    });
+    //}
+</div></code></pre>
+<p>We will replace it with.</p>
+<pre class="hljs"><code><div>    //// MAP Domain Model to DTO
+    var artistsDto = mapper.Map&lt;List&lt;ArtistDto&gt;&gt;(artists);
+</div></code></pre>
+<p>Where the Destination is the <code>List&lt;ArtistDto&gt;</code> and Source is <code>artists</code>.</p>
+<p>Test that the <code>GetAll()</code> method is working and then delete the commented code. We end up with.</p>
+<pre class="hljs"><code><div>	// GET: https://localhost:1234/api/artists
+	[HttpGet]
+	public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">GetAll</span></span>()
+	{
+		// GET data from the database - Domain Model
+		var artists = await artistRepository.GetAllAsync();
+	
+		//// MAP Domain Model to DTO
+		var artistsDto = mapper.Map&lt;List&lt;ArtistDto&gt;&gt;(artists);
+	
+		// Return the DTO back to the client
+		<span class="hljs-built_in">return</span> Ok(artistsDto);
+	}
+</div></code></pre>
+<p><strong>Note:</strong> you could even take out <code>artistsDto</code> assignment and add the mapper.Map() to the return statement (This is a little confusing).</p>
+<pre class="hljs"><code><div>		// Return the DTO back to the client
+		<span class="hljs-built_in">return</span> Ok(mapper.Map&lt;List&lt;ArtistDto&gt;&gt;(artists));
+</div></code></pre>
+<p>This code is much cleaner and easier to understand than the original code.</p>
+<p>Next we do the <code>GetById()</code> method and this is the opposite of the previous mapping.</p>
+<p>Our final code.</p>
+<pre class="hljs"><code><div>	// GET: https://localhost:1234/api/artists/114
+	[HttpGet]
+	[Route(<span class="hljs-string">"{id:int}"</span>)]
+	public async Task&lt;IActionResult&gt; GetById([FromRoute] int id)
+	{
+		// GET Artist Domain model from database
+		var artist = await artistRepository.GetByIdAsync(id);
+	
+		<span class="hljs-keyword">if</span> (artist == null)
+		{
+			<span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"An Artist with Id: {id} wasn't found!"</span>);
+		}
+	
+		// Return the DTO back to the client 
+		<span class="hljs-built_in">return</span> Ok(mapper.Map&lt;ArtistDto&gt;(artist));
+	}
+</div></code></pre>
+<p>For the <code>Create()</code> method we will have create another mapping between Source, <code>AddArtistDto</code> to Destination <code>Artist</code>.</p>
+<pre class="hljs"><code><div>    CreateMap&lt;AddArtistDto, Artist&gt;().ReverseMap();
+</div></code></pre>
+<p>Now our code is updated to this.</p>
+<pre class="hljs"><code><div>	// POST: https://localhost:1234/api/artists
+	[HttpPost]
+	public async Task&lt;IActionResult&gt; Create([FromBody] AddArtistDto addArtistDto)
+	{
+		// Map DTO to Domain Model
+		var artist = mapper.Map&lt;Artist&gt;(addArtistDto);
+	
+		// Use Domain Model to create Artist
+		artist = await artistRepository.CreateAsync(artist);
+	
+		// Map Domain model back to DTO
+		var artistDto = mapper.Map&lt;ArtistDto&gt;(artist);
+	
+		<span class="hljs-built_in">return</span> CreatedAtAction(nameof(GetById), new { id = artistDto.ArtistId }, artistDto);
+	}
+</div></code></pre>
+<p>For the <code>Update()</code> method we will have to create another mapping in <code>AutoMapperProfiles</code>.</p>
+<pre class="hljs"><code><div>    CreateMap&lt;UpdateArtistDto, Artist&gt;().ReverseMap();
+</div></code></pre>
+<p>Our <code>Update()</code> code is.</p>
+<pre class="hljs"><code><div>	// PUT: https://localhost:1234/api/artists/114
+	[HttpPut]
+	[Route(<span class="hljs-string">"{id:int}"</span>)]
+	public async Task&lt;IActionResult&gt; Update([FromRoute] int id, [FromBody] UpdateArtistDto updateArtistDto)
+	{
+		// Map DTO to Domain Model
+		var artist = mapper.Map&lt;Artist&gt;(updateArtistDto);
+	
+		artist = await artistRepository.UpdateAsync(id, artist);
+	
+		<span class="hljs-keyword">if</span> (artist == null)
+		{
+			<span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"Artist with Id: {id} wasn't found!"</span>);
+		}
+					
+		// Return the DTO back to the client 
+		<span class="hljs-built_in">return</span> Ok(mapper.Map&lt;ArtistDto&gt;(artist));
+	}
+</div></code></pre>
+<p>The <code>Delete()</code> doesn't require another mapping.</p>
+<pre class="hljs"><code><div>    // DELETE: https://localhost:1234/api/artists/114
+    [HttpDelete]
+    [Route(<span class="hljs-string">"{id:int}"</span>)]
+    public async Task&lt;IActionResult&gt; Delete([FromRoute] int id)
+    {
+        var artist = await artistRepository.DeleteAsync(id);
+    
+        <span class="hljs-keyword">if</span> (artist == null)
+        {
+            <span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"Artist with Id: {id} not found!"</span>);
+        }
+    
+        // Return the DTO back to the client 
+        <span class="hljs-built_in">return</span> Ok(mapper.Map&lt;ArtistDto&gt;(artist));
+    }
+</div></code></pre>
+<p>Now if you look at your ArtistsController class you will see that you have considerably reduced the clutter and reduced the chance of errors.</p>
 
 </body>
 </html>

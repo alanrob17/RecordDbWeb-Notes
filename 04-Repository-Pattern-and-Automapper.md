@@ -1,4 +1,4 @@
-# The Repository Pattern and Automapper
+# The Repository Pattern and AutoMapper
 
 ## The Repository pattern
 
@@ -14,11 +14,11 @@ The Repository class is responsible for creating CRUD operations on the data sto
 
 ![The Repository and dbContext layer](assets/images/repository-and-dbcontext.jpg "The Repository and dbContext layer")
 
-At the moment in our application we have the dbContext class injected inside the controller and it is the controller that is talking directly to the database using that context. That is not best practice and using the repository design pattern we can eliminate that and use an abstraction layer by adding that abstraction layer in between. Repositories can be added in between the controller and the database so that all the operations on the database is handled by the Repository.
+At the moment in our application we have the dbContext class injected inside the Controller and it is the Controller that is talking directly to the database using that context. That is not best practice and using the repository design pattern we can eliminate that and use an abstraction layer by adding that abstraction layer in between. Repositories can be added in between the controller and the database so that all the operations on the database is handled by the Repository.
 
-The ``dbContext`` class is injected inside the Repository rather that inside the controller and it is the Repository that is then injected in the controller. So the controller will use the Repository instead of using the dbContext.
+The ``dbContext`` class is injected inside the Repository rather that inside the Controller and it is the Repository that is then injected into the Controller. So the Controller will use the Repository instead of using the ``dbContext``.
 
-By doing that the controller now has no awareness of what is being called through the dbContext weather is is a SQL Server database, a MongoDb database or other database. It has no idea of where the data is coming from. It is just using the interface method exposed by the interface Repository and the implementation is hidden behind the implementation Repository.
+By doing that the Controller now has no awareness of what is being called through the ``dbContext`` wether it is a SQL Server database, a MongoDB database or another type of database. It has no idea of where the data is coming from. It is just using the Interface method exposed by the Interface Repository and the implementation is hidden behind the implementation Repository.
 
 Using that you can switch the logic and the data store behind the implementation Repository, for example you can use EntityFramework core to store your changes in a database or you can just use an in memory database by creating another  implementation Repository.
 
@@ -114,7 +114,7 @@ You will end up with this.
 
 Now we will work on our ``ArtistRepository`` class.
 
-The first thing to do is add the ``RecordDbContext`` to the ``ArtistRepository`` constructor.
+The first thing to do is inject the ``RecordDbContext`` into the ``ArtistRepository`` constructor.
 
 ```bash
     private readonly RecordDbContext dbContext;
@@ -208,7 +208,7 @@ Now we can inject the ``ArtistRepository`` into the ``GetById()`` method in ``Ar
 	[Route("{id:int}")]
 	public async Task<IActionResult> GetById([FromRoute] int id)
 	{
-		// GET Artist Domain mode from database
+		// GET Artist Domain model from database
 		var artist = await artistRepository.GetByIdAsync(id);
 	
 		if (artist == null)
@@ -379,7 +379,7 @@ Now we can inject the ``ArtistRepository`` into the ``GetById()`` method in ``Ar
 ```bash
 public async Task<Artist?> DeleteAsync(int id)
 {
-    var artist = await dbContext.Artist.FindAsync(id);
+    var artist = await dbContext.Artist.FindAsync(id); 
     if (artist == null)
     {
         return null;
@@ -406,3 +406,263 @@ Remove the ``dbContext`` property from the ``ArtistsController`` class.
 ```
 
 This completes the decoupling of the data store from the ``ArtistsController`` class.
+
+## AutoMapper
+
+AutoMapper is a popular object-to-object mapping library for ASP.Net Core applications. It allows us to simplify the mapping process between two objects with different structures by defining mappings between their properties.
+
+With the help of AutoMapper you can create mappings between the source and destination objects in a centralised location which can be used throughout your application.
+
+This reduces the need for manually copying values between objects and you can help to make your code more maintainable and less error prone.
+
+In ASP.Net Core AutoMapper is commonly used to map between Domain Models and View Models or DTO models.
+
+All properties must have the same name in source and destination models but there is also a way that we can match fields that don't have the same named properties.
+
+### Installing packages
+
+* Install-Package AutoMapper
+
+### Using AutoMapper
+
+We start off by creating Mapping Profile Models.
+
+Create a folder, ``Mappings``.
+
+Create a new class, ``AutoMapperProfiles.cs``. This class inherits a class from the AutoMapper package named **Profile**.
+
+```bash
+namespace RecordDb.API.Mappings
+{
+    public class AutoMapperProfiles: Profile
+    {
+        public AutoMapperProfiles()
+        {
+            
+        }
+    }
+}
+```
+
+All our mappings go within the constructor.
+
+AutoMapper works on ``Source`` to ``Destination`` (left to right).
+
+The first mapping we will create will be the ``Artist`` to ``ArtistDto`` mapping.
+
+```bash
+    public AutoMapperProfiles()
+    {
+        CreateMap<Artist, ArtistDto>();
+    }
+```
+
+So our Source is the Domain Model, ``Artist`` and our destination is the DTO, ``ArtistId``. Fortunately, there is a reverse mapping option as well.
+
+```bash
+    public AutoMapperProfiles()
+    {
+        CreateMap<Artist, ArtistDto>().ReverseMap();
+    }
+```
+
+This allows us to reverse the mapping without having to write 2 lines of mapping code.
+
+Now imagine that in our Source Domain Model, ``Artist`` our primary key is ``ArtistId`` and in our Destination DTO, ``ArtistDto`` our primary key is ``Id``.
+
+We can get around this with.
+
+```bash
+    public AutoMapperProfiles()
+    {
+        CreateMap<Artist, ArtistDto>()
+            .ForMember(x => x.Id, opt.MapFrom(x => x.ArtistId))
+            .ReverseMap();
+    }
+```
+
+Where ``x => x.ArtistId`` is the primary key in our Source Domain Model and ``Id`` which is our Destination DTO.
+
+We want to use some options so ``opt.MapFrom(x => x.ArtistId)``. Where ``opt.MapFrom()`` needs the source value which is our DTO which has the primary key of ``Id``.
+
+We are using ``.ReverseMap()`` so this will work both ways.
+
+In our case our property names are the same so we don't have to do this.
+
+Once again we will have to inject the AutoMapper Profile into the ``ArtistsController``.
+
+So in ``Program.cs`` after we inject our repositories.
+
+```bash
+    builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+```
+
+When the program is executed it will load all the Profiles from AutoMapperProfiles and inject them into our ``ArtistsController`` constructor.
+
+```bash
+    private readonly IArtistRepository artistRepository;
+    private readonly IMapper mapper;
+
+    public ArtistsController(IArtistRepository artistRepository, IMapper mapper)
+    {
+        this.artistRepository = artistRepository;
+        this.mapper = mapper;
+    }
+```
+
+Now we can inject ``mapper`` into our ``GetAll()`` method in the ``ArtistsController``.
+
+Comment this code for the moment.
+
+```bash
+    //// MAP Domain Model to DTO
+    //var artistsDto = new List<ArtistDto>();
+
+    //foreach (var artist in artists)
+    //{
+    //    artistsDto.Add(new ArtistDto()
+    //    {
+    //        ArtistId = artist.ArtistId,
+    //        FirstName = artist.FirstName,
+    //        LastName = artist.LastName,
+    //        Name = artist.Name,
+    //        Biography = artist.Biography
+    //    });
+    //}
+```
+
+We will replace it with.
+
+```bash
+    //// MAP Domain Model to DTO
+    var artistsDto = mapper.Map<List<ArtistDto>>(artists);
+```
+
+Where the Destination is the ``List<ArtistDto>`` and Source is ``artists``.
+
+Test that the ``GetAll()`` method is working and then delete the commented code. We end up with.
+
+```bash
+	// GET: https://localhost:1234/api/artists
+	[HttpGet]
+	public async Task<IActionResult> GetAll()
+	{
+		// GET data from the database - Domain Model
+		var artists = await artistRepository.GetAllAsync();
+	
+		//// MAP Domain Model to DTO
+		var artistsDto = mapper.Map<List<ArtistDto>>(artists);
+	
+		// Return the DTO back to the client
+		return Ok(artistsDto);
+	}
+```
+
+**Note:** you could even take out ``artistsDto`` assignment and add the mapper.Map() to the return statement (This is a little confusing).
+
+```bash
+		// Return the DTO back to the client
+		return Ok(mapper.Map<List<ArtistDto>>(artists));
+```
+
+This code is much cleaner and easier to understand than the original code.
+
+Next we do the ``GetById()`` method and this is the opposite of the previous mapping.
+
+Our final code.
+
+```bash
+	// GET: https://localhost:1234/api/artists/114
+	[HttpGet]
+	[Route("{id:int}")]
+	public async Task<IActionResult> GetById([FromRoute] int id)
+	{
+		// GET Artist Domain model from database
+		var artist = await artistRepository.GetByIdAsync(id);
+	
+		if (artist == null)
+		{
+			return NotFound($"An Artist with Id: {id} wasn't found!");
+		}
+	
+		// Return the DTO back to the client 
+		return Ok(mapper.Map<ArtistDto>(artist));
+	}
+```
+
+For the ``Create()`` method we will have create another mapping between Source, ``AddArtistDto`` to Destination ``Artist``.
+
+```bash
+    CreateMap<AddArtistDto, Artist>().ReverseMap();
+```
+
+Now our code is updated to this.
+
+```bash
+	// POST: https://localhost:1234/api/artists
+	[HttpPost]
+	public async Task<IActionResult> Create([FromBody] AddArtistDto addArtistDto)
+	{
+		// Map DTO to Domain Model
+		var artist = mapper.Map<Artist>(addArtistDto);
+	
+		// Use Domain Model to create Artist
+		artist = await artistRepository.CreateAsync(artist);
+	
+		// Map Domain model back to DTO
+		var artistDto = mapper.Map<ArtistDto>(artist);
+	
+		return CreatedAtAction(nameof(GetById), new { id = artistDto.ArtistId }, artistDto);
+	}
+```
+
+For the ``Update()`` method we will have to create another mapping in ``AutoMapperProfiles``.
+
+```bash
+    CreateMap<UpdateArtistDto, Artist>().ReverseMap();
+```
+
+Our ``Update()`` code is.
+
+```bash
+	// PUT: https://localhost:1234/api/artists/114
+	[HttpPut]
+	[Route("{id:int}")]
+	public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateArtistDto updateArtistDto)
+	{
+		// Map DTO to Domain Model
+		var artist = mapper.Map<Artist>(updateArtistDto);
+	
+		artist = await artistRepository.UpdateAsync(id, artist);
+	
+		if (artist == null)
+		{
+			return NotFound($"Artist with Id: {id} wasn't found!");
+		}
+					
+		// Return the DTO back to the client 
+		return Ok(mapper.Map<ArtistDto>(artist));
+	}
+```
+
+The ``Delete()`` doesn't require another mapping.
+
+```bash
+    // DELETE: https://localhost:1234/api/artists/114
+    [HttpDelete]
+    [Route("{id:int}")]
+    public async Task<IActionResult> Delete([FromRoute] int id)
+    {
+        var artist = await artistRepository.DeleteAsync(id);
+    
+        if (artist == null)
+        {
+            return NotFound($"Artist with Id: {id} not found!");
+        }
+    
+        // Return the DTO back to the client 
+        return Ok(mapper.Map<ArtistDto>(artist));
+    }
+```
+
+Now if you look at your ArtistsController class you will see that you have considerably reduced the clutter and reduced the chance of errors.
