@@ -402,3 +402,84 @@ Once we have tested this we can go back to the ``Create()`` method in ``RecordsC
 ```
 
 ## Navigation Properties In Entity Framework Core
+
+We use navigation properties to get related data from the database when we retrieve a domain model.
+
+Navigation properties allows you to navigate from one domain model to another. 
+
+For example.
+
+We run ``GetById()`` to retrieve a ``Record`` by ``RecordId``.
+
+In the ``Record`` and ``RecordDto`` models we have the following fields.
+
+```bash
+    public int RecordId { get; set; } // identity field
+
+    public int ArtistId { get; set; } // relate to the artist entity
+```
+
+These fields are related.
+
+We add the following to the ``Record`` and ``RecordDto`` models.
+
+```bash
+    #region " Navigation Properties "
+
+    public Artist Artist { get; set; }
+    
+    #endregion
+```
+
+This allows us to use the navigation properties.
+
+**Note:** because we use the ``Record`` and ``RecordDto`` to retrieve a ``Record`` entity by ``RecordId`` we have to include the navigation properties on both models.
+
+In the ``RecordRepository`` we can add.
+
+```bash
+    public async Task<Record?> GetByIdAsync(int id)
+    {
+        return await dbContext.Record.Include("Artist").FirstOrDefaultAsync(r => r.RecordId == id);
+    }
+```
+
+``Include("Artist")`` will include the navigation property (``Artist``) in the output. If we search for a ``RecordId`` of **2213** the output will be.
+
+```bash
+    {
+      "recordId": 2213,
+      "artistId": 114,
+      "name": "Biograph",
+      "field": "Rock",
+      "recorded": 1985,
+      "label": "Sony",
+      "pressing": "Eng",
+      "rating": "****",
+      "discs": 3,
+      "media": "CD",
+      "bought": "2016-10-25T00:00:00",
+      "cost": 24,
+      "coverName": null,
+      "review": "<p>Historically, Biograph is significant...",
+      "artist": {
+        "artistId": 114,
+        "firstName": "Bob",
+        "lastName": "Dylan",
+        "name": "Bob Dylan",
+        "biography": "<p>Bob Dylan's influence on popular music..."
+      }
+    }
+```
+
+It includes the ``Record`` and the ``Artist`` details for a single entity.
+
+**Important Note:** This only works for entities that have a Primary and one or more Foreign keys. It won't work for the ``Artist`` entity because that only has a Primary key.
+
+I could also use the ``Include()`` method with the ``GetAll()`` method that retrieves all Record entities. I won't do this at present because it brings back all ``Record`` entities with their respective ``Artist`` entity which is a huge amount of information (and very slow).
+
+In future we will filter the number of ``Record`` entities being bought back and when we do this I will create partial models for the ``Record`` and ``Artist`` entities so that I can limit the number of fields I bring back.
+
+At present I have a number of fields in the ``Record`` entity that have hard coded information. For example, the ``Pressing`` field can be a string value like Aus, Eng, US, etc. These are hard coded and I should change them to ``1 to 1`` join tables to remove redundant information from the ``Record`` entity. Using the Navigation properties would make it invaluable to join all of the ``1 to 1`` entity tables for each Record entity I retrieve.
+
+This would require a huge modification to my ``RecordDB`` Database and my existing code.

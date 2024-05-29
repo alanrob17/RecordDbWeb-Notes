@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>05-Adding-The-Record-Controller.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="adding-the-record-controller-and-making-the-repository-more-generic">Adding the Record Controller and making the Repository more generic</h1>
+<h2 id="record-domain-model">Record Domain Model</h2>
+<pre class="hljs"><code><div>    public class Record
+    {
+        <span class="hljs-comment">#region " Properties "</span>
+
+        public int RecordId { get; <span class="hljs-built_in">set</span>; } // identity field
+
+        public int ArtistId { get; <span class="hljs-built_in">set</span>; } // relate to the artist entity
+
+        public string Name { get; <span class="hljs-built_in">set</span>; }
+
+        public string Field { get; <span class="hljs-built_in">set</span>; }
+
+        public int Recorded { get; <span class="hljs-built_in">set</span>; }
+
+        public string Label { get; <span class="hljs-built_in">set</span>; }
+
+        public string Pressing { get; <span class="hljs-built_in">set</span>; }
+
+        public string Rating { get; <span class="hljs-built_in">set</span>; }
+
+        public int Discs { get; <span class="hljs-built_in">set</span>; }
+
+        public string Media { get; <span class="hljs-built_in">set</span>; }
+
+        public DateTime? Bought { get; <span class="hljs-built_in">set</span>; }
+
+        public decimal? Cost { get; <span class="hljs-built_in">set</span>; }
+
+        public string? CoverName { get; <span class="hljs-built_in">set</span>; }
+
+        public string? Review { get; <span class="hljs-built_in">set</span>; }
+
+        <span class="hljs-comment">#endregion</span>
+    }
+</div></code></pre>
+<h2 id="add-data-transfer-objects-dtos">Add Data Transfer Objects (DTO's)</h2>
+<h3 id="recorddto">RecordDto</h3>
+<pre class="hljs"><code><div>    public class RecordDto
+    {
+        public int RecordId { get; <span class="hljs-built_in">set</span>; } 
+        public int ArtistId { get; <span class="hljs-built_in">set</span>; } 
+        public string Name { get; <span class="hljs-built_in">set</span>; }
+        public string Field { get; <span class="hljs-built_in">set</span>; }
+        public int Recorded { get; <span class="hljs-built_in">set</span>; }
+        public string Label { get; <span class="hljs-built_in">set</span>; }
+        public string Pressing { get; <span class="hljs-built_in">set</span>; }
+        public string Rating { get; <span class="hljs-built_in">set</span>; }
+        public int Discs { get; <span class="hljs-built_in">set</span>; }
+        public string Media { get; <span class="hljs-built_in">set</span>; }
+        public DateTime? Bought { get; <span class="hljs-built_in">set</span>; }
+        public decimal? Cost { get; <span class="hljs-built_in">set</span>; }
+        public string? CoverName { get; <span class="hljs-built_in">set</span>; }
+        public string? Review { get; <span class="hljs-built_in">set</span>; }
+    }
+</div></code></pre>
+<h3 id="addrecorddto">AddRecordDto</h3>
+<pre class="hljs"><code><div>    public class addRecordDto
+    {
+        public int ArtistId { get; <span class="hljs-built_in">set</span>; }
+        public string Name { get; <span class="hljs-built_in">set</span>; }
+        public string Field { get; <span class="hljs-built_in">set</span>; }
+        public int Recorded { get; <span class="hljs-built_in">set</span>; }
+        public string Label { get; <span class="hljs-built_in">set</span>; }
+        public string Pressing { get; <span class="hljs-built_in">set</span>; }
+        public string Rating { get; <span class="hljs-built_in">set</span>; }
+        public int Discs { get; <span class="hljs-built_in">set</span>; }
+        public string Media { get; <span class="hljs-built_in">set</span>; }
+        public DateTime? Bought { get; <span class="hljs-built_in">set</span>; }
+        public decimal? Cost { get; <span class="hljs-built_in">set</span>; }
+        public string? CoverName { get; <span class="hljs-built_in">set</span>; }
+        public string? Review { get; <span class="hljs-built_in">set</span>; }
+    }
+</div></code></pre>
+<h3 id="updaterecorddto">UpdateRecordDto</h3>
+<pre class="hljs"><code><div>    public int ArtistId { get; <span class="hljs-built_in">set</span>; }
+    public string Name { get; <span class="hljs-built_in">set</span>; }
+    public string Field { get; <span class="hljs-built_in">set</span>; }
+    public int Recorded { get; <span class="hljs-built_in">set</span>; }
+    public string Label { get; <span class="hljs-built_in">set</span>; }
+    public string Pressing { get; <span class="hljs-built_in">set</span>; }
+    public string Rating { get; <span class="hljs-built_in">set</span>; }
+    public int Discs { get; <span class="hljs-built_in">set</span>; }
+    public string Media { get; <span class="hljs-built_in">set</span>; }
+    public DateTime? Bought { get; <span class="hljs-built_in">set</span>; }
+    public decimal? Cost { get; <span class="hljs-built_in">set</span>; }
+    public string? CoverName { get; <span class="hljs-built_in">set</span>; }
+    public string? Review { get; <span class="hljs-built_in">set</span>; }
+</div></code></pre>
+<h2 id="add-record-mappings-to-automapperprofilescs">Add Record Mappings to AutoMapperProfiles.cs</h2>
+<pre class="hljs"><code><div>    public class AutoMapperProfiles: Profile
+    {
+        public <span class="hljs-function"><span class="hljs-title">AutoMapperProfiles</span></span>()
+        {
+            CreateMap&lt;Artist, ArtistDto&gt;().ReverseMap();
+            CreateMap&lt;AddArtistDto, Artist&gt;().ReverseMap();
+            CreateMap&lt;UpdateArtistDto, Artist&gt;().ReverseMap();
+            CreateMap&lt;Record, RecordDto&gt;().ReverseMap();
+            CreateMap&lt;AddRecordDto, Record&gt;().ReverseMap();
+            CreateMap&lt;UpdateRecordDto, Record&gt;().ReverseMap();
+        }
+    }
+</div></code></pre>
+<h2 id="add-records-controller">Add Records Controller</h2>
+<p>Create the RecordsController from the API Controller template and add a constructor with the AutoMapper <code>IMapper</code> interface injected into it.</p>
+<p>Build the <code>Create()</code> method and add the <em>DTO to Domain Model</em> mapping.</p>
+<pre class="hljs"><code><div>    [Route(<span class="hljs-string">"api/[controller]"</span>)]
+    [ApiController]
+    public class RecordsController : ControllerBase
+    {
+        private <span class="hljs-built_in">readonly</span> Mapper mapper;
+
+        public RecordsController(RecordDbContext dbContext, Mapper mapper)
+        {
+            this.mapper = mapper;
+        }
+
+        // POST: https://localhost:1234/api/records
+        [HttpPost]
+        public async Task&lt;IActionResult&gt; Create([FromBody] AddRecordDto addRecordDto)
+        {
+            // Map DTO to Domain Model
+            var record = mapper.Map&lt;Record&gt;(addRecordDto);
+        }        
+    }
+</div></code></pre>
+<p>We are now at the stage where we need to create the <code>IRecordRepository</code> and the <code>RecordRepository</code>.</p>
+<h2 id="create-the-record-repository">Create the Record Repository</h2>
+<h3 id="irecordrepositorycs">IRecordRepository.cs</h3>
+<pre class="hljs"><code><div>    public interface IRecordRepository
+    {
+        Task&lt;List&lt;Record&gt;&gt; GetAllAsync();
+
+        Task&lt;Record?&gt; GetByIdAsync(int id);
+
+        Task&lt;Record&gt; CreateAsync(Record record);
+
+        Task&lt;Record?&gt; UpdateAsync(int id, Record record);
+
+        Task&lt;Record?&gt; DeleteAsync(int id);
+    }
+</div></code></pre>
+<h3 id="recordrepositorycs">RecordRepository.cs</h3>
+<p>Create the constructor and inject the RecordDbContext into it. Also build the <code>CreateAsync()</code> method.</p>
+<pre class="hljs"><code><div>    private <span class="hljs-built_in">readonly</span> RecordDbContext dbContext;
+
+    public RecordRepository(RecordDbContext dbContext) 
+    {
+        this.dbContext = dbContext;
+    }
+    
+    public async Task&lt;Record&gt; CreateAsync(Record record)
+    {
+        await dbContext.Record.AddAsync(record);
+        await dbContext.SaveChangesAsync();
+    
+        <span class="hljs-built_in">return</span> record;
+    }
+</div></code></pre>
+<p>Modify the constructor by injecting the <code>RecordDbContext</code> into it.</p>
+<pre class="hljs"><code><div>    private <span class="hljs-built_in">readonly</span> IRecordRepository recordRepository;
+    private <span class="hljs-built_in">readonly</span> IMapper mapper;
+    
+    public RecordsController(IRecordRepository recordRepository, IMapper mapper)
+    {
+        this.recordRepository = recordRepository;
+        this.mapper = mapper;
+    }
+</div></code></pre>
+<p>Now complete the <code>Create()</code> method in the <code>RecordsController</code>.</p>
+<pre class="hljs"><code><div>	// POST: https://localhost:1234/api/records
+	[HttpPost]
+	public async Task&lt;IActionResult&gt; Create([FromBody] AddRecordDto addRecordDto)
+	{
+		// Map DTO to Domain Model
+		var record = mapper.Map&lt;Record&gt;(addRecordDto);
+	
+		// Use Domain Model to create Artist
+		record = await recordRepository.CreateAsync(record);
+	
+		// Map Domain model back to DTO
+		var recordDto = mapper.Map&lt;RecordDto&gt;(record);
+	
+		// <span class="hljs-built_in">return</span> CreatedAtAction(nameof(GetById), new { id = recordDto.ArtistId }, recordDto);
+		<span class="hljs-built_in">return</span> Ok(recordDto);
+	}
+</div></code></pre>
+<p>We don't have a <code>GetById()</code> method so for the moment we will just return the <code>RecordDto</code>.</p>
+<p>Before we can test this method we will have to register <code>IRecordRepository</code> into <code>Program.cs</code>.</p>
+<pre class="hljs"><code><div>    builder.Services.AddScoped&lt;IRecordRepository, RecordRepository&gt;();
+</div></code></pre>
+<p>Now we are ready for testing.</p>
+<p>Once we have tested that the Create method is working correctly we can build our <code>GetAll()</code> method in the Records Controller.</p>
+<pre class="hljs"><code><div>    // GET: https://localhost:1234/api/records
+    [HttpGet]
+    public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">GetAll</span></span>()
+    {
+        // GET data from the database - Domain Model
+        var records = await recordRepository.GetAllAsync()  
+    
+        // Return the DTO back to the client
+        <span class="hljs-built_in">return</span> Ok(mapper.Map&lt;List&lt;RecordDto&gt;&gt;(records));
+    }
+</div></code></pre>
+<p>We now have to build the <code>RecordRepository.GetAllAsync()</code> method in the Record Repository.</p>
+<pre class="hljs"><code><div>    public async Task&lt;List&lt;Record&gt;&gt; <span class="hljs-function"><span class="hljs-title">GetAllAsync</span></span>()
+    {
+        <span class="hljs-built_in">return</span> await dbContext.Record.ToListAsync();
+    }
+</div></code></pre>
+<p>Create the <code>GetById()</code> method in <code>RecordsController</code>.</p>
+<pre class="hljs"><code><div>    // GET: https://localhost:1234/api/artists/114
+    [HttpGet]
+    [Route(<span class="hljs-string">"{id:int}"</span>)]
+    public async Task&lt;IActionResult&gt; GetById([FromRoute] int id)
+    {
+        // GET Artist Domain mode from database
+        var record = await recordRepository.GetByIdAsync(id);
+
+        <span class="hljs-keyword">if</span> (record == null)
+        {
+            <span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"An Record with Id: {id} wasn't found!"</span>);
+        }
+
+        // Return the DTO back to the client 
+        <span class="hljs-built_in">return</span> Ok(mapper.Map&lt;RecordDto&gt;(record));
+    }
+</div></code></pre>
+<p>Now build the <code>recordRepository.GetByIdAsync(id)</code> method in the Record Repository.</p>
+<pre class="hljs"><code><div>    public async Task&lt;Record?&gt; GetByIdAsync(int id)
+    {
+        <span class="hljs-built_in">return</span> await dbContext.Record.FirstOrDefaultAsync(r =&gt; r.RecordId == id);
+    }
+</div></code></pre>
+<p>Once we have tested this we can go back to the <code>Create()</code> method in <code>RecordsController</code> and finish the <code>return</code> statement.</p>
+<pre class="hljs"><code><div>    // POST: https://localhost:1234/api/records
+    [HttpPost]
+    public async Task&lt;IActionResult&gt; Create([FromBody] AddRecordDto addRecordDto)
+    {
+        // Map DTO to Domain Model
+        var record = mapper.Map&lt;Record&gt;(addRecordDto);
+
+        // Use Domain Model to create Artist
+        record = await recordRepository.CreateAsync(record);
+
+        // Map Domain model back to DTO
+        var recordDto = mapper.Map&lt;RecordDto&gt;(record);
+
+        <span class="hljs-built_in">return</span> CreatedAtAction(nameof(GetById), new { id = recordDto.ArtistId }, recordDto);
+    }
+</div></code></pre>
+<h3 id="record-controller-update-method">Record Controller Update() method</h3>
+<pre class="hljs"><code><div>    // PUT: https://localhost:1234/api/artists/114
+    [HttpPut]
+    [Route(<span class="hljs-string">"{id:int}"</span>)]
+    public async Task&lt;IActionResult&gt; Update([FromRoute] int id, [FromBody] UpdateRecordDto updateRecordDto)
+    {
+        // Map DTO to Domain Model
+        var record = mapper.Map&lt;Record&gt;(updateRecordDto);
+
+        record = await recordRepository.UpdateAsync(id, record);
+
+        <span class="hljs-keyword">if</span> (record == null)
+        {
+            <span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"Record with Id: {id} wasn't found!"</span>);
+        }
+
+        // Return the DTO back to the client 
+        <span class="hljs-built_in">return</span> Ok(mapper.Map&lt;RecordDto&gt;(record));
+    }
+</div></code></pre>
+<h3 id="record-repository-updateasync-method">Record Repository UpdateAsync() method</h3>
+<pre class="hljs"><code><div>    public async Task&lt;Record?&gt; UpdateAsync(int id, Record record)
+    {
+        var existingRecord = await dbContext.Record.FirstOrDefaultAsync(b =&gt; b.RecordId == id);
+
+        <span class="hljs-keyword">if</span> (existingRecord == null)
+        {
+            <span class="hljs-built_in">return</span> null;
+        }
+
+        existingRecord.ArtistId = record.ArtistId;
+        existingRecord.Name = record.Name;
+        existingRecord.Field = record.Field;
+        existingRecord.Recorded = record.Recorded;
+        existingRecord.Label = record.Label;
+        existingRecord.Pressing = record.Pressing;
+        existingRecord.Rating = record.Rating;
+        existingRecord.Discs = record.Discs;
+        existingRecord.Media = record.Media;
+        existingRecord.Bought = record.Bought;
+        existingRecord.Cost = record.Cost;
+        existingRecord.CoverName = record.CoverName;
+        existingRecord.Review = record.Review;
+
+        await dbContext.SaveChangesAsync();
+
+        <span class="hljs-built_in">return</span> existingRecord;
+    }
+</div></code></pre>
+<h3 id="record-controller-delete-method">Record Controller Delete() method</h3>
+<pre class="hljs"><code><div>    // DELETE: https://localhost:1234/api/artists/114
+    [HttpDelete]
+    [Route(<span class="hljs-string">"{id:int}"</span>)]
+    public async Task&lt;IActionResult&gt; Delete([FromRoute] int id)
+    {
+        var record = await recordRepository.DeleteAsync(id);
+
+        <span class="hljs-keyword">if</span> (record == null)
+        {
+            <span class="hljs-built_in">return</span> NotFound($<span class="hljs-string">"Record with Id: {id} not found!"</span>);
+        }
+
+        // Return the DTO back to the client 
+        <span class="hljs-built_in">return</span> Ok(mapper.Map&lt;RecordDto&gt;(record));
+    }
+</div></code></pre>
+<h3 id="record-repository-deleteasync-method">Record Repository DeleteAsync() method</h3>
+<pre class="hljs"><code><div>    public async Task&lt;Record?&gt; DeleteAsync(int id)
+    {
+        var record = await dbContext.Record.FindAsync(id);
+
+        <span class="hljs-keyword">if</span> (record == null)
+        {
+            <span class="hljs-built_in">return</span> null;
+        }
+
+        dbContext.Record.Remove(record);
+        await dbContext.SaveChangesAsync();
+
+        <span class="hljs-built_in">return</span> record;
+    }
+</div></code></pre>
+<h2 id="navigation-properties-in-entity-framework-core">Navigation Properties In Entity Framework Core</h2>
+<p>We use navigation properties to get related data from the database when we retrieve a domain model.</p>
+<p>Navigation properties allows you to navigate from one domain model to another.</p>
+<p>For example.</p>
+<p>We run <code>GetById()</code> to retrieve a <code>Record</code> by <code>RecordId</code>.</p>
+<p>In the <code>Record</code> and <code>RecordDto</code> models we have the following fields.</p>
+<pre class="hljs"><code><div>    public int RecordId { get; <span class="hljs-built_in">set</span>; } // identity field
+
+    public int ArtistId { get; <span class="hljs-built_in">set</span>; } // relate to the artist entity
+</div></code></pre>
+<p>These fields are related.</p>
+<p>We add the following to the <code>Record</code> and <code>RecordDto</code> models.</p>
+<pre class="hljs"><code><div>    <span class="hljs-comment">#region " Navigation Properties "</span>
+
+    public Artist Artist { get; <span class="hljs-built_in">set</span>; }
+    
+    <span class="hljs-comment">#endregion</span>
+</div></code></pre>
+<p>This allows us to use the navigation properties.</p>
+<p><strong>Note:</strong> because we use the <code>Record</code> and <code>RecordDto</code> to retrieve a <code>Record</code> entity by <code>RecordId</code> we have to include the navigation properties on both models.</p>
+<p>In the <code>RecordRepository</code> we can add.</p>
+<pre class="hljs"><code><div>    public async Task&lt;Record?&gt; GetByIdAsync(int id)
+    {
+        <span class="hljs-built_in">return</span> await dbContext.Record.Include(<span class="hljs-string">"Artist"</span>).FirstOrDefaultAsync(r =&gt; r.RecordId == id);
+    }
+</div></code></pre>
+<p><code>Include(&quot;Artist&quot;)</code> will include the navigation property (<code>Artist</code>) in the output. If we search for a <code>RecordId</code> of <strong>2213</strong> the output will be.</p>
+<pre class="hljs"><code><div>    {
+      <span class="hljs-string">"recordId"</span>: 2213,
+      <span class="hljs-string">"artistId"</span>: 114,
+      <span class="hljs-string">"name"</span>: <span class="hljs-string">"Biograph"</span>,
+      <span class="hljs-string">"field"</span>: <span class="hljs-string">"Rock"</span>,
+      <span class="hljs-string">"recorded"</span>: 1985,
+      <span class="hljs-string">"label"</span>: <span class="hljs-string">"Sony"</span>,
+      <span class="hljs-string">"pressing"</span>: <span class="hljs-string">"Eng"</span>,
+      <span class="hljs-string">"rating"</span>: <span class="hljs-string">"****"</span>,
+      <span class="hljs-string">"discs"</span>: 3,
+      <span class="hljs-string">"media"</span>: <span class="hljs-string">"CD"</span>,
+      <span class="hljs-string">"bought"</span>: <span class="hljs-string">"2016-10-25T00:00:00"</span>,
+      <span class="hljs-string">"cost"</span>: 24,
+      <span class="hljs-string">"coverName"</span>: null,
+      <span class="hljs-string">"review"</span>: <span class="hljs-string">"&lt;p&gt;Historically, Biograph is significant..."</span>,
+      <span class="hljs-string">"artist"</span>: {
+        <span class="hljs-string">"artistId"</span>: 114,
+        <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Bob"</span>,
+        <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Dylan"</span>,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"Bob Dylan"</span>,
+        <span class="hljs-string">"biography"</span>: <span class="hljs-string">"&lt;p&gt;Bob Dylan's influence on popular music..."</span>
+      }
+    }
+</div></code></pre>
+<p>It includes the <code>Record</code> and the <code>Artist</code> details for a single entity.</p>
+<p><strong>Important Note:</strong> This only works for entities that have a Primary and one or more Foreign keys. It won't work for the <code>Artist</code> entity because that only has a Primary key.</p>
+<p>I could also use the <code>Include()</code> method with the <code>GetAll()</code> method that retrieves all Record entities. I won't do this at present because it brings back all <code>Record</code> entities with their respective <code>Artist</code> entity which is a huge amount of information (and very slow).</p>
+<p>In future we will filter the number of <code>Record</code> entities being bought back and when we do this I will create partial models for the <code>Record</code> and <code>Artist</code> entities so that I can limit the number of fields I bring back.</p>
+<p>At present I have a number of fields in the <code>Record</code> entity that have hard coded information. For example, the <code>Pressing</code> field can be a string value like Aus, Eng, US, etc. These are hard coded and I should change them to <code>1 to 1</code> join tables to remove redundant information from the <code>Record</code> entity. Using the Navigation properties would make it invaluable to join all of the <code>1 to 1</code> entity tables for each Record entity I retrieve.</p>
+<p>This would require a huge modification to my <code>RecordDB</code> Database and my existing code.</p>
+
+</body>
+</html>
