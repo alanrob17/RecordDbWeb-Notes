@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Validation in ASP.NET</title>
+<link href="assets/css/bootstrap.css" rel="stylesheet">
+<!-- Custom styles for this template -->
+<link href="assets/css/starter-template.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+<style type="text/css">
+html {
+	font-size: 90.0%;
+}
+
+h2 {
+	margin-top: 60px;
+}
+
+h4, h3 {
+	padding-top: 40px!;		
+}
+
+p {
+	font-size: 1.2em;
+}
+h4 {
+	font-size: 1.4em;
+}
+
+img, pre.prettyprint {
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+    color:#007bff;
+
+}
+blockquote {
+    border-left: 4px solid #999;
+    padding-left: 1rem;
+    page-break-inside: avoid;
+}
+</style>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Building ASP.Net Core Web API's</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Validation in ASP.NET <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="container">
+    <div class="starter-template">
+
+
+<h1 id="validation-in-aspnet-core-web-api">Validation in ASP.NET Core Web API</h1>
+<h2 id="model-validation">Model Validation</h2>
+<p>We are at the stage where our API is built and anyone can consume it with any language. These applications are speaking to our API endpoints. Now that we are letting clients create or update data we have to validate the models that they are sending in and this is what Model Validation is all about. We need to have Model Validation on the endpoints we expose that receive data from the client. For example, we have our Create and Update methods so we need to check that the data in these properties is valid. If it is valid we can then proceed. If it isn't we need to send back a <code>BadRequest()</code> or <strong>400</strong> response. By sending a <code>BadRequest()</code> to the client we are asking them to correct the data before they can submit again.</p>
+<h2 id="adding-model-validation-to-our-endpoints">Adding Model Validation to our Endpoints</h2>
+<p>We need to add Model Validation to the endpoints that are exposed to the client which is through the controllers and that is where we will add the validation.</p>
+<p>We will start with the <code>ArtistsController</code>. In here we want to validate the endpoints that are accepting data. This will be <code>Create()</code> and <code>Update()</code> endpoints.</p>
+<p>We do Model Validation using data annotations on the <code>AddArtistDto</code> and the <code>UpdateArtistDto</code> models.</p>
+<pre class="prettyprint"><code><div>    public class AddArtistDto
+    {
+        [MaxLength(50, ErrorMessage = <span class="hljs-string">"Artist FirstName can't be larger than 50 characters!"</span>)]
+        public string? FirstName { get; <span class="hljs-built_in">set</span>; }
+
+        [Required]
+        [MaxLength(50, ErrorMessage =<span class="hljs-string">"Artist LastName can't be larger than 50 characters!"</span>)]
+        public string LastName { get; <span class="hljs-built_in">set</span>; } // not null
+
+        [Required]
+        [MaxLength(50, ErrorMessage =<span class="hljs-string">"Artist LastName can't be larger than 50 characters!"</span>)]
+        public string Name { get; <span class="hljs-built_in">set</span>; }
+
+        public string? Biography { get; <span class="hljs-built_in">set</span>; }
+    }
+</div></code></pre>
+<p>The <code>UpdateArtistDto</code> class is identical to this.</p>
+<p>We also add data annotations on the <code>AddRecordDto</code> and the <code>UpdateRecordDto</code> models.</p>
+<pre class="prettyprint"><code><div>    public class AddRecordDto
+    {
+        [Required]
+        public int ArtistId { get; <span class="hljs-built_in">set</span>; } // relate to the artist entity
+
+        [Required]
+        [MaxLength(80, ErrorMessage = <span class="hljs-string">"Record Name can't be larger than 80 characters!"</span>)]
+        public string Name { get; <span class="hljs-built_in">set</span>; }
+
+        [Required]
+        [MaxLength(50, ErrorMessage = <span class="hljs-string">"Field can't be larger than 50 characters!"</span>)]
+        public string Field { get; <span class="hljs-built_in">set</span>; }
+
+        [Required]
+        [Range(1900, 2024, ErrorMessage = <span class="hljs-string">"Recorded must be between 1900 and 2024!"</span>)]
+        public int Recorded { get; <span class="hljs-built_in">set</span>; }
+
+        [Required]
+        [MaxLength(50, ErrorMessage = <span class="hljs-string">"Label can't be larger than 50 characters!"</span>)]
+        public string Label { get; <span class="hljs-built_in">set</span>; }
+
+        [Required]
+        [MaxLength(50, ErrorMessage = <span class="hljs-string">"Pressing can't be larger than 50 characters!"</span>)]
+        public string Pressing { get; <span class="hljs-built_in">set</span>; }
+
+        [Required]
+        [MinLength(1, ErrorMessage = <span class="hljs-string">"Rating can't be less than 1 character!"</span>)]
+        [MaxLength(4, ErrorMessage = <span class="hljs-string">"Rating can't be larger than 4 characters!"</span>)]
+        public string Rating { get; <span class="hljs-built_in">set</span>; }
+
+        [Required]
+        [Range(1, 10, ErrorMessage = <span class="hljs-string">"Discs must be between 1 and 10!"</span>)]
+        public int Discs { get; <span class="hljs-built_in">set</span>; }
+
+        [Required]
+        [MaxLength(50, ErrorMessage = <span class="hljs-string">"Media can't be larger than 50 characters!"</span>)]
+        public string Media { get; <span class="hljs-built_in">set</span>; }
+
+        public DateTime? Bought { get; <span class="hljs-built_in">set</span>; }
+
+        public decimal? Cost { get; <span class="hljs-built_in">set</span>; }
+
+        public string? CoverName { get; <span class="hljs-built_in">set</span>; }
+
+        public string? Review { get; <span class="hljs-built_in">set</span>; }
+    }
+</div></code></pre>
+<p>The <code>UpdateRecordDto</code> class is identical to this.</p>
+<p>Now that we have defined our Model Validation we can work on the <code>ArtistsController</code>.</p>
+<h3 id="artistscontroller---create-method">ArtistsController - Create() method</h3>
+<pre class="prettyprint"><code><div>    // POST: https://localhost:1234/api/artists
+    [HttpPost]
+    public async Task&lt;IActionResult&gt; Create([FromBody] AddArtistDto addArtistDto)
+    {
+        <span class="hljs-keyword">if</span> (ModelState.IsValid)
+        {
+            // Map DTO to Domain Model
+            var artist = mapper.Map&lt;Artist&gt;(addArtistDto);
+    
+            // Use Domain Model to create Artist
+            artist = await artistRepository.CreateAsync(artist);
+    
+            // Map Domain model back to DTO
+            var artistDto = mapper.Map&lt;ArtistDto&gt;(artist);
+            <span class="hljs-built_in">return</span> CreatedAtAction(nameof(GetById), new { id = artistDto.ArtistId }, artistDto);
+        }
+    
+        <span class="hljs-built_in">return</span> BadRequest(ModelState);
+    }
+</div></code></pre>
+<h2 id="custom-action-filter">Custom Action Filter</h2>
+<p>There is a better way of doing validation and that is using a custom action filter. This will allow us to remove the manual validation checking that we have to add to each <code>Create()</code> and <code>Update()</code> method.</p>
+<p>Create a new Folder, <code>CustomActionFilters</code> with a class, <code>ValidateModelAttribute</code>.</p>
+<p>We inherit from <code>ActionFilterAttribute</code> and override the <code>OnActionExecuting()</code> method,</p>
+<p>Add the <code>BadRequest()</code> result.</p>
+<pre class="prettyprint"><code><div>    public class ValidateModelAttribute: ActionFilterAttribute
+    {
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            context.Result = new BadRequestResult();
+        }
+    }
+</div></code></pre>
+<p>Now we add the <code>[ValidateModel]</code> attribute to all of our <code>Create()</code> and <code>Update()</code> controller methods.</p>
+<p>Example.</p>
+<pre class="prettyprint"><code><div>    // POST: https://localhost:1234/api/artists
+    [HttpPost]
+    [ValidateModel]
+    public async Task&lt;IActionResult&gt; Create([FromBody] AddArtistDto addArtistDto)
+    {
+        ...
+</div></code></pre>
+<p>If we enter.</p>
+<pre class="prettyprint"><code><div>{
+  <span class="hljs-string">"artistId"</span>: 860,
+  <span class="hljs-string">"name"</span>: <span class="hljs-string">"Bass To The Max!......................................................................................................................................................................................................................................................................................................................................."</span>,
+  <span class="hljs-string">"field"</span>: <span class="hljs-string">"Rock"</span>,
+  <span class="hljs-string">"recorded"</span>: 2026,
+  <span class="hljs-string">"label"</span>: <span class="hljs-string">"Rubber Dubber"</span>,
+  <span class="hljs-string">"pressing"</span>: <span class="hljs-string">"Am"</span>,
+  <span class="hljs-string">"rating"</span>: <span class="hljs-string">"*****"</span>,
+  <span class="hljs-string">"discs"</span>: 16,
+  <span class="hljs-string">"media"</span>: <span class="hljs-string">"CD"</span>,
+  <span class="hljs-string">"bought"</span>: <span class="hljs-string">"2024-05-30"</span>,
+  <span class="hljs-string">"cost"</span>: -19.99,
+  <span class="hljs-string">"coverName"</span>: null,
+  <span class="hljs-string">"review"</span>: <span class="hljs-string">"This is James first album."</span>
+}
+</div></code></pre>
+<p>It returns the following <code>BadRequest()</code> error message.</p>
+<pre class="prettyprint"><code><div>{
+  <span class="hljs-string">"type"</span>: <span class="hljs-string">"https://tools.ietf.org/html/rfc9110#section-15.5.1"</span>,
+  <span class="hljs-string">"title"</span>: <span class="hljs-string">"One or more validation errors occurred."</span>,
+  <span class="hljs-string">"status"</span>: 400,
+  <span class="hljs-string">"errors"</span>: {
+    <span class="hljs-string">"Name"</span>: [
+      <span class="hljs-string">"Record Name can't be larger than 80 characters!"</span>
+    ],
+    <span class="hljs-string">"Discs"</span>: [
+      <span class="hljs-string">"Discs must be between 1 and 10!"</span>
+    ],
+    <span class="hljs-string">"Rating"</span>: [
+      <span class="hljs-string">"Rating can't be larger than 4 characters!"</span>
+    ],
+    <span class="hljs-string">"Recorded"</span>: [
+      <span class="hljs-string">"Recorded must be between 1900 and 2024!"</span>
+    ]
+  },
+  <span class="hljs-string">"traceId"</span>: <span class="hljs-string">"00-a4d59d2549a9ae21cb21b3d50704747d-dea060317dcaebfb-00"</span>
+}
+</div></code></pre>
+
+
+
+</div><!-- starter-template -->
+</div><!-- /.container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"/>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
+</body>
+</html>
