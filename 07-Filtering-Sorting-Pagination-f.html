@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Filtering-Sorting-Pagination</title>
+<link href="assets/css/bootstrap.css" rel="stylesheet">
+<!-- Custom styles for this template -->
+<link href="assets/css/starter-template.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+<style type="text/css">
+html {
+	font-size: 90.0%;
+}
+
+h2 {
+	margin-top: 60px;
+}
+
+h4, h3 {
+	padding-top: 40px!;		
+}
+
+p {
+	font-size: 1.2em;
+}
+h4 {
+	font-size: 1.4em;
+}
+
+img, pre.prettyprint {
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+    color:#007bff;
+
+}
+blockquote {
+    border-left: 4px solid #999;
+    padding-left: 1rem;
+    page-break-inside: avoid;
+}
+</style>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Building ASP.Net Core Web API's</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Filtering, Sorting &amp; Pagination <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="container">
+    <div class="starter-template">
+
+
+<h1 id="filtering-sorting-pagination-in-aspnet-core-web-api">Filtering, Sorting, Pagination in ASP.NET Core Web API</h1>
+<h2 id="filtering">Filtering</h2>
+<p>Filtering is common in ASP.Net Core. It allows us to return a subset of records rather than the complete set of records.</p>
+<p>For example, we want to sort on the <code>Field</code> property in the <code>Record</code> entity. We need to add two query parameters to our <code>IRecordRepository</code>, <code>RecordRepository</code> and <code>RecordsController</code> classes by changing the <code>getAll()</code> methods.</p>
+<h2 id="reducing-data-going-back-to-the-client">Reducing data going back to the client</h2>
+<p>Even with filtering I am returning too much data to the client. The <code>Artist</code> entity has the <code>Biography</code> text field and the <code>Record</code> entity has the <code>Review</code> text field. These fields bring back a huge amount of data and make the output unreadable. I have found that I can use DTO's to reduce the amount of data being sent back to the client.</p>
+<p>I have created a <code>RecordQueryDto</code> to remove the <code>Review</code> property from the output to the client.</p>
+<p>Also note that I have to create an <code>ArtistQueryDto</code> and use it in the navigation field.</p>
+<h3 id="recordquerydto">RecordQueryDto</h3>
+<pre class="prettyprint"><code><div>    public class RecordQueryDto
+    {
+        public int RecordId { get; <span class="hljs-built_in">set</span>; }
+
+        public int ArtistId { get; <span class="hljs-built_in">set</span>; }
+
+        public string Name { get; <span class="hljs-built_in">set</span>; }
+
+        public string Field { get; <span class="hljs-built_in">set</span>; }
+
+        public int Recorded { get; <span class="hljs-built_in">set</span>; }
+
+        public string Label { get; <span class="hljs-built_in">set</span>; }
+
+        public string Pressing { get; <span class="hljs-built_in">set</span>; }
+
+        public string Rating { get; <span class="hljs-built_in">set</span>; }
+
+        public int Discs { get; <span class="hljs-built_in">set</span>; }
+
+        public string Media { get; <span class="hljs-built_in">set</span>; }
+
+        public DateTime? Bought { get; <span class="hljs-built_in">set</span>; }
+
+        public decimal? Cost { get; <span class="hljs-built_in">set</span>; }
+
+        public string? CoverName { get; <span class="hljs-built_in">set</span>; }
+
+        public ArtistQueryDto Artist { get; <span class="hljs-built_in">set</span>; }
+    }
+</div></code></pre>
+<p>I remove the <code>Biography</code> property from the <code>ArtistQueryDto</code> model.</p>
+<h3 id="artistquerydto">ArtistQueryDto</h3>
+<pre class="prettyprint"><code><div>    public class ArtistQueryDto
+    {
+        [Required]
+        public int ArtistId { get; <span class="hljs-built_in">set</span>; } // identity field
+
+        public string? FirstName { get; <span class="hljs-built_in">set</span>; }
+
+        [Required]
+        public string LastName { get; <span class="hljs-built_in">set</span>; }
+
+        [Required]
+        public string Name { get; <span class="hljs-built_in">set</span>; }
+    }
+</div></code></pre>
+<p>Now that I have created two new DTO's I have to add two mappings to the <code>AutoMapperProfiles</code> class.</p>
+<pre class="prettyprint"><code><div>    CreateMap&lt;Artist, ArtistQueryDto&gt;().ReverseMap();
+    CreateMap&lt;Record, RecordQueryDto&gt;().ReverseMap();
+</div></code></pre>
+<p>All I have to do now is change the <code>RecordsController</code> method, <code>GetAll()</code> to use the <code>RecordQueryDto</code> mapping for output.</p>
+<p><strong>Note:</strong> you can create new DTO's that reduce the number of fields in the original entities. For example, I have <code>RecordDto</code> to output the full <code>Record</code> entity and I created <code>RecordQueryDto</code> which is missing the <code>Review</code> field. Automapper is smart enough to realise that they are the same entity so ignore the <code>Review</code> property in the JSON output.</p>
+<h3 id="recordscontroller">RecordsController</h3>
+<pre class="prettyprint"><code><div>    // GET: https://localhost:1234/api/records
+    [HttpGet]
+    public async Task&lt;IActionResult&gt; GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery)
+    {
+        // GET data from the database - Domain Model
+        var records = await recordRepository.GetAllAsync(filterOn, filterQuery);
+    
+        // Return the DTO back to the client
+        <span class="hljs-built_in">return</span> Ok(mapper.Map&lt;List&lt;RecordQueryDto&gt;&gt;(records));
+    }
+</div></code></pre>
+<p>We are retrieving the parameters from the Query string so require the <code>[FromQuery]</code> attribute. Both parameters can be nullable strings so we can add a <code>?</code> to the end of the types.</p>
+<h3 id="irecordrepository">IRecordRepository</h3>
+<pre class="prettyprint"><code><div>    Task&lt;List&lt;Record&gt;&gt; GetAllAsync(string? filterOn = null, string? filterQuery = null);
+</div></code></pre>
+<h3 id="recordrepository">RecordRepository</h3>
+<pre class="prettyprint"><code><div>    public async Task&lt;List&lt;Record&gt;&gt; GetAllAsync(string? filterOn = null, string? filterQuery = null)
+    {
+        var records = dbContext.Record.Include(<span class="hljs-string">"Artist"</span>).AsQueryable(); 
+    
+        // Filtering
+        <span class="hljs-keyword">if</span> (string.IsNullOrWhiteSpace(filterOn) == <span class="hljs-literal">false</span> &amp;&amp; string.IsNullOrWhiteSpace(filterQuery) == <span class="hljs-literal">false</span>)
+        {
+            <span class="hljs-keyword">if</span> (filterOn.Equals(<span class="hljs-string">"Field"</span>, StringComparison.OrdinalIgnoreCase))
+            {
+                records = records.Where(r =&gt; r.Field.Contains(filterQuery));
+            }
+        }   
+    
+        <span class="hljs-built_in">return</span> await records.ToListAsync();
+    }
+</div></code></pre>
+<p><strong>Note:</strong> The <code>dbContext</code> statement retrieves all <code>Artist</code> and <code>Record</code> entities. While this is relatively fast the process of sending all records as JSON to the webpage is very slow. I should be able to mitigate this by filtering, then using pagination to limit the number of records being sent to the web page.</p>
+<p><strong>Note</strong> in <code>GetAllAsync()</code> above that I only have one option to filter and there are a number of other fields that I should be able to filter on.</p>
+<p>I can improve on this by moving the filtering to another method so that I don't clutter the <code>GetAllAsync()</code> method.</p>
+<p>Now I can filter on all the properties that require it.</p>
+<h3 id="getallasync">GetAllAsync()</h3>
+<pre class="prettyprint"><code><div>    public async Task&lt;List&lt;Record&gt;&gt; GetAllAsync(string? filterOn = null, string? filterQuery = null)
+    {
+        var records = dbContext.Record.Include(<span class="hljs-string">"Artist"</span>).AsQueryable();
+
+        // Filtering
+        <span class="hljs-keyword">if</span> (string.IsNullOrWhiteSpace(filterOn) == <span class="hljs-literal">false</span> &amp;&amp; string.IsNullOrWhiteSpace(filterQuery) == <span class="hljs-literal">false</span>)
+        {
+            records = FilterRecords(records, filterOn, filterQuery);
+        }
+
+        <span class="hljs-built_in">return</span> await records.ToListAsync();
+    }
+</div></code></pre>
+<h3 id="filterrecords">FilterRecords()</h3>
+<pre class="prettyprint"><code><div>    private IQueryable&lt;Record&gt; FilterRecords(IQueryable&lt;Record&gt; records, string filterOn, string filterQuery)
+    {
+        <span class="hljs-keyword">if</span> (filterOn.Equals(<span class="hljs-string">"Field"</span>, StringComparison.OrdinalIgnoreCase))
+        {
+            records = records.Where(r =&gt; r.Field.Contains(filterQuery));
+        }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (filterOn.Equals(<span class="hljs-string">"Media"</span>, StringComparison.OrdinalIgnoreCase))
+        {
+            records = records.Where(r =&gt; r.Media.Contains(filterQuery));
+        }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (filterOn.Equals(<span class="hljs-string">"Review"</span>, StringComparison.OrdinalIgnoreCase))
+        {
+            string pattern = <span class="hljs-string">"%"</span> + filterQuery + <span class="hljs-string">"%"</span>;
+            records = records.Where(r =&gt; EF.Functions.Like(r.Review, pattern));
+        }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (filterOn.Equals(<span class="hljs-string">"Name"</span>, StringComparison.OrdinalIgnoreCase))
+        {
+            string pattern = <span class="hljs-string">"%"</span> + filterQuery + <span class="hljs-string">"%"</span>;
+            records = records.Where(r =&gt; EF.Functions.Like(r.Name, pattern));
+        }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (filterOn.Equals(<span class="hljs-string">"ArtistName"</span>, StringComparison.OrdinalIgnoreCase))
+        {
+            string pattern = <span class="hljs-string">"%"</span> + filterQuery + <span class="hljs-string">"%"</span>;
+            records = records.Where(r =&gt; EF.Functions.Like(r.Artist.Name, pattern));
+        }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (filterOn.Equals(<span class="hljs-string">"Recorded"</span>, StringComparison.OrdinalIgnoreCase))
+        {
+            records = records.Where(r =&gt; r.Recorded.Equals(int.Parse(filterQuery)));
+        }        
+
+        <span class="hljs-built_in">return</span> records;
+    }
+</div></code></pre>
+<h2 id="sorting">Sorting</h2>
+<p>We will sort on the <code>Artist.LastName</code>, <code>Artist.FirstName</code> and <code>Recorded</code> fields in <code>RecordRepository()</code>.</p>
+<p>We will add two more query parameters, <code>sortBy</code> (artistName) for the field name and <code>isAscending</code>, a boolean for the sort direction. With <code>true</code> for ascending.</p>
+<p>Once again we need add these query parameters to our <code>IRecordRepository</code>, <code>RecordRepository</code> and <code>RecordsController</code> classes by changing the <code>getAll()</code> methods.</p>
+<h3 id="recordscontroller">RecordsController</h3>
+<pre class="prettyprint"><code><div>// GET: https://localhost:1234/api/records?filterOn=field&amp;filterQuery=recorded&amp;sortOn=name&amp;isAscending
+[HttpGet]
+public async Task&lt;IActionResult&gt; GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery, 
+    [FromQuery] string?  sortBy, [FromQuery] bool isAscending)
+{
+    // GET data from the database - Domain Model
+    var records = await recordRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending);
+
+    // Return the DTO back to the client
+    <span class="hljs-built_in">return</span> Ok(mapper.Map&lt;List&lt;RecordQueryDto&gt;&gt;(records));
+}
+</div></code></pre>
+<h3 id="irecordrepository">IRecordRepository</h3>
+<pre class="prettyprint"><code><div>    Task&lt;List&lt;Record&gt;&gt; GetAllAsync(string? filterOn = null, string? filterQuery = null, 
+        string? sortBy = null, bool isAscending = <span class="hljs-literal">true</span>);
+</div></code></pre>
+<h3 id="recordrepository">RecordRepository</h3>
+<pre class="prettyprint"><code><div>public async Task&lt;List&lt;Record&gt;&gt; GetAllAsync(string? filterOn = null, string? filterQuery = null, string?
+    sortBy = null, bool isAscending = <span class="hljs-literal">true</span>)
+{
+    var records = dbContext.Record.Include(<span class="hljs-string">"Artist"</span>).AsQueryable();
+
+    // Filtering
+    <span class="hljs-keyword">if</span> (string.IsNullOrWhiteSpace(filterOn) == <span class="hljs-literal">false</span> &amp;&amp; string.IsNullOrWhiteSpace(filterQuery) == <span class="hljs-literal">false</span>)
+    {
+        records = FilterRecords(records, filterOn, filterQuery);
+    }
+
+    // Sorting
+    <span class="hljs-keyword">if</span> (string.IsNullOrWhiteSpace(sortBy) == <span class="hljs-literal">false</span>)
+    {
+        <span class="hljs-keyword">if</span> (sortBy.Equals(<span class="hljs-string">"artistName"</span>, StringComparison.OrdinalIgnoreCase))
+        {
+            records = isAscending ? records.OrderBy(r =&gt; r.Artist.LastName).
+                ThenBy(r =&gt; r.Artist.FirstName).ThenBy(r =&gt; r.Recorded) : 
+                records.OrderBy(r =&gt; r.Artist.LastName).ThenBy(r =&gt; r.Artist.FirstName).
+                ThenByDescending(r =&gt; r.Recorded);
+        }
+    }
+
+    <span class="hljs-built_in">return</span> await records.ToListAsync();
+}
+</div></code></pre>
+<p><strong>Note:</strong> If using a descending sort I am sorting by <code>LastName</code>, <code>FirstName</code> ascending and then I sort the <code>Recorded</code> by descending.</p>
+<h2 id="pagination">Pagination</h2>
+<p>Pagination is limiting the number of records that will be shown on a web page. It requires two parameters, <code>pageNumber</code> and <code>pageSize</code>. Once again these will have to be added to the <code>GetAll()</code> methods in the <code>IRecordRepository</code>, <code>RecordRepository</code> and <code>RecordsController</code> classes.</p>
+<h3 id="recordscontroller">RecordsController</h3>
+<pre class="prettyprint"><code><div>    // GET: https://localhost:1234/api/records?filterOn=field&amp;filterQuery=recorded&amp;sortOn=name&amp;isAscending=<span class="hljs-literal">true</span>&amp;    ageNumber=1,pageSize=15
+    [HttpGet]
+    public async Task&lt;IActionResult&gt; GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery, 
+        [FromQuery] string? sortBy, [FromQuery] bool? isAscending, 
+        [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15)
+    {
+        // GET data from the database - Domain Model
+        var records = await recordRepository.GetAllAsync(filterOn, filterQuery, sortBy, 
+                isAscending ?? <span class="hljs-literal">true</span>, pageNumber, pageSize);
+
+        // Return the DTO back to the client
+        <span class="hljs-built_in">return</span> Ok(mapper.Map&lt;List&lt;RecordQueryDto&gt;&gt;(records));
+    }
+</div></code></pre>
+<h3 id="irecordrepository">IRecordRepository</h3>
+<pre class="prettyprint"><code><div>Task&lt;List&lt;Record&gt;&gt; GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, 
+        bool isAscending = <span class="hljs-literal">true</span>, int pageNumber = 1, int pageSize = 15);
+</div></code></pre>
+<h3 id="recordrepository">RecordRepository</h3>
+<pre class="prettyprint"><code><div>    public async Task&lt;List&lt;Record&gt;&gt; GetAllAsync(string? filterOn = null, string? filterQuery = null, string?
+        sortBy = null, bool isAscending = <span class="hljs-literal">true</span>, int pageNumber = 1, int pageSize = 15)
+    {
+        var records = dbContext.Record.Include(<span class="hljs-string">"Artist"</span>).AsQueryable()  
+    
+        // Filtering
+        <span class="hljs-keyword">if</span> (string.IsNullOrWhiteSpace(filterOn) == <span class="hljs-literal">false</span> &amp;&amp; string.IsNullOrWhiteSpace(filterQuery) == <span class="hljs-literal">false</span>)
+        {
+            records = FilterRecords(records, filterOn, filterQuery);
+        }
+
+        // Sorting
+        <span class="hljs-keyword">if</span> (string.IsNullOrWhiteSpace(sortBy) == <span class="hljs-literal">false</span>)
+        {
+            <span class="hljs-keyword">if</span> (sortBy.Equals(<span class="hljs-string">"artistName"</span>, StringComparison.OrdinalIgnoreCase))
+            {
+                records = isAscending ? records.OrderBy(r =&gt; r.Artist.LastName).ThenBy(r =&gt; r.Artist.FirstName).ThenBy( =&gt; r.Recorded) : 
+                    records.OrderBy(r =&gt; r.Artist.LastName).ThenBy(r =&gt; r.Artist.FirstName).ThenByDescendi  (r =&gt; r.Recorded);
+            }
+        }
+
+        // Pagination
+        var skipResults = (pageNumber - 1) * pageSize   
+        
+        <span class="hljs-built_in">return</span> await records.Skip(skipResults).Take(pageSize).ToListAsync();
+    }
+</div></code></pre>
+<p>We are using the calculation for skipping results <code>(pageNumber - 1) * pageSize</code>.</p>
+<p>We use <code>Skip()</code> and <code>Take()</code> to navigate through the set of records.</p>
+<p>To test this out use these parameters.</p>
+<p><img src="assets/images/filtering.jpg" alt="Filters, sorting and pagination" title="Filters, sorting and pagination"></p>
+<p>We produce these results.</p>
+<pre class="prettyprint"><code><div>    [
+      {
+        <span class="hljs-string">"recordId"</span>: 263,
+        <span class="hljs-string">"artistId"</span>: 114,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"Bob Dylan"</span>,
+        <span class="hljs-string">"field"</span>: <span class="hljs-string">"Folk"</span>,
+        <span class="hljs-string">"recorded"</span>: 1961,
+        <span class="hljs-string">"label"</span>: <span class="hljs-string">"CBS"</span>,
+        <span class="hljs-string">"pressing"</span>: <span class="hljs-string">"Aus"</span>,
+        <span class="hljs-string">"rating"</span>: <span class="hljs-string">"****"</span>,
+        <span class="hljs-string">"discs"</span>: 1,
+        <span class="hljs-string">"media"</span>: <span class="hljs-string">"CD"</span>,
+        <span class="hljs-string">"bought"</span>: <span class="hljs-string">"1989-01-09T00:00:00"</span>,
+        <span class="hljs-string">"cost"</span>: 10,
+        <span class="hljs-string">"coverName"</span>: <span class="hljs-string">"dylan-dylan.jpg"</span>,
+        <span class="hljs-string">"artist"</span>: {
+          <span class="hljs-string">"artistId"</span>: 114,
+          <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Bob"</span>,
+          <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Dylan"</span>,
+          <span class="hljs-string">"name"</span>: <span class="hljs-string">"Bob Dylan"</span>
+        }
+      },
+      {
+        <span class="hljs-string">"recordId"</span>: 264,
+        <span class="hljs-string">"artistId"</span>: 114,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"Bob Dylan"</span>,
+        <span class="hljs-string">"field"</span>: <span class="hljs-string">"Folk"</span>,
+        <span class="hljs-string">"recorded"</span>: 1961,
+        <span class="hljs-string">"label"</span>: <span class="hljs-string">"CBS"</span>,
+        <span class="hljs-string">"pressing"</span>: <span class="hljs-string">"Aus"</span>,
+        <span class="hljs-string">"rating"</span>: <span class="hljs-string">"****"</span>,
+        <span class="hljs-string">"discs"</span>: 1,
+        <span class="hljs-string">"media"</span>: <span class="hljs-string">"R"</span>,
+        <span class="hljs-string">"bought"</span>: <span class="hljs-string">"1900-01-01T00:00:00"</span>,
+        <span class="hljs-string">"cost"</span>: 0,
+        <span class="hljs-string">"coverName"</span>: <span class="hljs-string">"dylan-dylan.jpg"</span>,
+        <span class="hljs-string">"artist"</span>: {
+          <span class="hljs-string">"artistId"</span>: 114,
+          <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Bob"</span>,
+          <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Dylan"</span>,
+          <span class="hljs-string">"name"</span>: <span class="hljs-string">"Bob Dylan"</span>
+        }
+      },
+      {
+        <span class="hljs-string">"recordId"</span>: 1814,
+        <span class="hljs-string">"artistId"</span>: 114,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"The Harry Belafonte Sessions"</span>,
+        <span class="hljs-string">"field"</span>: <span class="hljs-string">"Folk"</span>,
+        <span class="hljs-string">"recorded"</span>: 1961,
+        <span class="hljs-string">"label"</span>: <span class="hljs-string">"Bootleg"</span>,
+        <span class="hljs-string">"pressing"</span>: <span class="hljs-string">"Am"</span>,
+        <span class="hljs-string">"rating"</span>: <span class="hljs-string">"**"</span>,
+        <span class="hljs-string">"discs"</span>: 1,
+        <span class="hljs-string">"media"</span>: <span class="hljs-string">"CD"</span>,
+        <span class="hljs-string">"bought"</span>: <span class="hljs-string">"2006-03-17T00:00:00"</span>,
+        <span class="hljs-string">"cost"</span>: 0,
+        <span class="hljs-string">"coverName"</span>: null,
+        <span class="hljs-string">"artist"</span>: {
+          <span class="hljs-string">"artistId"</span>: 114,
+          <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Bob"</span>,
+          <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Dylan"</span>,
+          <span class="hljs-string">"name"</span>: <span class="hljs-string">"Bob Dylan"</span>
+        }
+      },
+      {
+        <span class="hljs-string">"recordId"</span>: 1728,
+        <span class="hljs-string">"artistId"</span>: 114,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"Live At The Gaslight 1962"</span>,
+        <span class="hljs-string">"field"</span>: <span class="hljs-string">"Folk"</span>,
+        <span class="hljs-string">"recorded"</span>: 1962,
+        <span class="hljs-string">"label"</span>: <span class="hljs-string">"Starbucks"</span>,
+        <span class="hljs-string">"pressing"</span>: <span class="hljs-string">"Am"</span>,
+        <span class="hljs-string">"rating"</span>: <span class="hljs-string">"****"</span>,
+        <span class="hljs-string">"discs"</span>: 1,
+        <span class="hljs-string">"media"</span>: <span class="hljs-string">"CD"</span>,
+        <span class="hljs-string">"bought"</span>: <span class="hljs-string">"2006-01-22T00:00:00"</span>,
+        <span class="hljs-string">"cost"</span>: 0,
+        <span class="hljs-string">"coverName"</span>: null,
+        <span class="hljs-string">"artist"</span>: {
+          <span class="hljs-string">"artistId"</span>: 114,
+          <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Bob"</span>,
+          <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Dylan"</span>,
+          <span class="hljs-string">"name"</span>: <span class="hljs-string">"Bob Dylan"</span>
+        }
+      },
+      {
+        <span class="hljs-string">"recordId"</span>: 1135,
+        <span class="hljs-string">"artistId"</span>: 114,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"The Freewheelin'"</span>,
+        <span class="hljs-string">"field"</span>: <span class="hljs-string">"Folk"</span>,
+        <span class="hljs-string">"recorded"</span>: 1962,
+        <span class="hljs-string">"label"</span>: <span class="hljs-string">"Columbia"</span>,
+        <span class="hljs-string">"pressing"</span>: <span class="hljs-string">"Am"</span>,
+        <span class="hljs-string">"rating"</span>: <span class="hljs-string">"****"</span>,
+        <span class="hljs-string">"discs"</span>: 1,
+        <span class="hljs-string">"media"</span>: <span class="hljs-string">"CD"</span>,
+        <span class="hljs-string">"bought"</span>: <span class="hljs-string">"1998-07-03T00:00:00"</span>,
+        <span class="hljs-string">"cost"</span>: 13,
+        <span class="hljs-string">"coverName"</span>: <span class="hljs-string">"dylan-free.jpg"</span>,
+        <span class="hljs-string">"artist"</span>: {
+          <span class="hljs-string">"artistId"</span>: 114,
+          <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Bob"</span>,
+          <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Dylan"</span>,
+          <span class="hljs-string">"name"</span>: <span class="hljs-string">"Bob Dylan"</span>
+        }
+      },
+      {
+        ...
+      }
+    ]
+</div></code></pre>
+<h2 id="add-filtering-sorting--pagination-to-artists">Add filtering, sorting &amp; pagination to Artists</h2>
+<h3 id="artistscontroller">ArtistsController</h3>
+<pre class="prettyprint"><code><div>// GET: https://localhost:1234/api/artists?filterOn=field&amp;filterQuery=recorded&amp;sortOn=name&amp;isAscending=<span class="hljs-literal">true</span>&amp;pageNumber=1,pageSize=15
+[HttpGet]
+public async Task&lt;IActionResult&gt; GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
+    [FromQuery] string? sortBy, [FromQuery] bool? isAscending,
+    [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 15)
+{
+    // GET data from the database - Domain Model
+    var artists = await artistRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? <span class="hljs-literal">true</span>, pageNumber, pageSize);
+
+    // Return the DTO back to the client
+    <span class="hljs-built_in">return</span> Ok(mapper.Map&lt;List&lt;ArtistQueryDto&gt;&gt;(artists));
+}
+</div></code></pre>
+<h3 id="iartistrepository">IArtistRepository</h3>
+<pre class="prettyprint"><code><div>Task&lt;List&lt;Artist&gt;&gt; GetAllAsync(string? filterOn = null, string? filterQuery = null, 
+    string? sortBy = null, bool isAscending = <span class="hljs-literal">true</span>, int pageNumber = 1, int pageSize = 15);
+</div></code></pre>
+<h3 id="artistrepository">ArtistRepository</h3>
+<pre class="prettyprint"><code><div>public async Task&lt;List&lt;Artist&gt;&gt; GetAllAsync(string? filterOn = null, string? filterQuery = null, 
+    string? sortBy = null, bool isAscending = <span class="hljs-literal">true</span>, int pageNumber = 1, int pageSize = 15)
+{
+    var artists = dbContext.Artist.AsQueryable();
+
+    // Filtering
+    <span class="hljs-keyword">if</span> (string.IsNullOrWhiteSpace(filterOn) == <span class="hljs-literal">false</span> &amp;&amp; string.IsNullOrWhiteSpace(filterQuery) == <span class="hljs-literal">false</span>)
+    {
+        <span class="hljs-keyword">if</span> (filterOn.Equals(<span class="hljs-string">"Name"</span>, StringComparison.OrdinalIgnoreCase))
+        {
+            string pattern = <span class="hljs-string">"%"</span> + filterQuery + <span class="hljs-string">"%"</span>;
+            artists = artists.Where(r =&gt; EF.Functions.Like(r.Name, pattern));
+        }
+
+    }
+
+    // Sorting
+    <span class="hljs-keyword">if</span> (string.IsNullOrWhiteSpace(sortBy) == <span class="hljs-literal">false</span>)
+    {
+        <span class="hljs-keyword">if</span> (sortBy.Equals(<span class="hljs-string">"Name"</span>, StringComparison.OrdinalIgnoreCase))
+        {
+            artists = isAscending ? artists.OrderBy(r =&gt; r.LastName).ThenBy(r =&gt; r.FirstName) : artists.OrderByDescending(r =&gt; r.LastName).ThenBy(r =&gt; r.FirstName);
+        }
+    }
+
+    // Pagination
+    var skipResults = (pageNumber - 1) * pageSize;
+
+    <span class="hljs-built_in">return</span> await artists.Skip(skipResults).Take(pageSize).ToListAsync();
+}
+</div></code></pre>
+<p>Do a test.</p>
+<p><img src="assets/images/artist-filter.jpg" alt="Artist filters, sorting and pagination" title="Artist filters, sorting and pagination"></p>
+<p>Results.</p>
+<pre class="prettyprint"><code><div>    [
+      {
+        <span class="hljs-string">"artistId"</span>: 528,
+        <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Mick"</span>,
+        <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Abrahams"</span>,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"Mick Abrahams"</span>
+      },
+      {
+        <span class="hljs-string">"artistId"</span>: 821,
+        <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Geoff"</span>,
+        <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Achison"</span>,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"Geoff Achison"</span>
+      },
+      {
+        <span class="hljs-string">"artistId"</span>: 1,
+        <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"William"</span>,
+        <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Ackerman"</span>,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"William Ackerman"</span>
+      },
+      {
+        <span class="hljs-string">"artistId"</span>: 498,
+        <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Ryan"</span>,
+        <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Adams"</span>,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"Ryan Adams"</span>
+      },
+      {
+        <span class="hljs-string">"artistId"</span>: 3,
+        <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Duane"</span>,
+        <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Allman"</span>,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"Duane Allman"</span>
+      },
+      {
+        <span class="hljs-string">"artistId"</span>: 4,
+        <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"Gregg"</span>,
+        <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Allman"</span>,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"Greg Allman"</span>
+      },
+      {
+        <span class="hljs-string">"artistId"</span>: 2,
+        <span class="hljs-string">"firstName"</span>: <span class="hljs-string">"The"</span>,
+        <span class="hljs-string">"lastName"</span>: <span class="hljs-string">"Allman Brothers Band"</span>,
+        <span class="hljs-string">"name"</span>: <span class="hljs-string">"The Allman Brothers Band"</span>
+      },
+      {
+        ...
+      }
+    ]
+</div></code></pre>
+<p>.</p>
+
+
+</div><!-- starter-template -->
+</div><!-- /.container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"/>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
+</body>
+</html>
