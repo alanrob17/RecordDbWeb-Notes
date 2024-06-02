@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>10-Advanced-Functionality.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="10-advanced-functionality-in-aspnet-core-web-apis">10-Advanced Functionality in ASP.NET Core Web APIs</h1>
+<h2 id="logging">Logging</h2>
+<p>Is used to capture and store information about the applications behavior and operation during runtime.</p>
+<p>Logging allows the developer to see how their application is functioning and provides valuable insights into how issues may arise.</p>
+<p>We will use a 3rd party application named Serilog to carry out logging.</p>
+<h3 id="packages">Packages</h3>
+<ul>
+<li>Serilog</li>
+<li>Serilog.AspNetCore</li>
+<li>Serilog.Sinks.Console</li>
+<li>Serilog.Sinks.File</li>
+</ul>
+<h3 id="logging-to-the-console-window">Logging to the Console window</h3>
+<p>Once again you have to inject it into your application.</p>
+<p>In <code>Program.cs</code> add logging above the controller section.</p>
+<pre class="hljs"><code><div>    var logger = new LoggerConfiguration()
+        .WriteTo.Console()
+        .MinimumLevel.Warning()
+        .CreateLogger();    
+    
+    builder.Logging.ClearProviders();
+    builder.Logging.AddSerilog(logger);
+</div></code></pre>
+<p>In our configuration we are logging all <strong>Warning</strong> issues. We have a number of other options available including Information, Error and Fatal.</p>
+<p>The <code>ClearProviders()</code> method will clear any other logging methods that we used in the project.</p>
+<p>The <code>AddSerilog(logger)</code> method adds logging to our project using the <code>logger</code> configuration.</p>
+<p>Now that we have injected Serilog into our services we can use it by injecting it into our Controllers constructor.</p>
+<p>To inject the logger it must have a type an that should be the controllers name. In our case we will add it to the <code>ArtistsController</code>.</p>
+<pre class="hljs"><code><div>    private <span class="hljs-built_in">readonly</span> ILogger&lt;ArtistsController&gt; logger; 
+
+    public ArtistsController(IArtistRepository artistRepository, IMapper mapper, ILogger&lt;ArtistsController&gt; logger)
+    {
+        this.artistRepository = artistRepository;
+        this.mapper = mapper;
+        this.logger = logger;
+    }
+</div></code></pre>
+<p>We will use logging in the <code>GetAll()</code> method.</p>
+<pre class="hljs"><code><div>    logger.LogInformation(<span class="hljs-string">"In the Artists GetAll() controller method..."</span>);
+</div></code></pre>
+<p>This will show the following Console messages</p>
+<blockquote>
+<p>[12:08:07 WRN] No store type was specified for the decimal property 'Cost' on entity type 'Record'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.<br>
+...</p>
+</blockquote>
+<p>You can see that it is only showing Warning messages so change <code>Program.cs</code> to log Information messages.</p>
+<p>Now you see this.</p>
+<blockquote>
+<p>[12:13:48 INF] In the Artists GetAll() controller method...<br>
+[12:13:48 WRN] No store type was specified for the decimal property 'Cost' on entity type 'Record'. This will cause values to be silently<br>
+...</p>
+</blockquote>
+<p>We can use <code>JsonSerializer</code> (<code>System.Text.Json</code>) to output the results. Add the following to <code>GetAll()</code>.</p>
+<pre class="hljs"><code><div>	// GET data from the database - Domain Model
+	var artists = await artistRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? <span class="hljs-literal">true</span>, pageNumber, pageSize);
+	
+	logger.LogInformation($<span class="hljs-string">"Finished GetAll()\n {JsonSerializer.Serialize(artists)}"</span>);
+</div></code></pre>
+<p>Returns.</p>
+<blockquote>
+<p>[12:21:56 INF] In the Artists GetAll() controller method...		<br>
+[12:21:57 INF] Finished GetAll()		<br>
+[{&quot;ArtistId&quot;:1,&quot;FirstName&quot;:&quot;William&quot;,&quot;LastName&quot;:&quot;Ackerman&quot;,&quot;Name&quot;:&quot;William Ackerman&quot;,&quot;Biography&quot;:&quot;\u003Cp\u003EWill Ackerman...</p>
+</blockquote>
+<p>ASP.Net Core logs all database requests so I have removed these from the output.</p>
+<p>The interesting part of the output to the console is that at this stage I can see the Biographies. These don't make it to the web page.</p>
+<h3 id="throw-an-exception">Throw an exception</h3>
+<pre class="hljs"><code><div>    try
+    {
+        throw new Exception(<span class="hljs-string">"Throw exception..."</span>);
+
+        // GET data from the database - Domain Model
+        var artists = await artistRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? <span class="hljs-literal">true</span>, pageNumber,    pageSize);
+
+        logger.LogInformation($<span class="hljs-string">"Finished GetAll()\n {JsonSerializer.Serialize(artists)}"</span>);
+
+        // Return the DTO back to the client
+        <span class="hljs-built_in">return</span> Ok(mapper.Map&lt;List&lt;ArtistQueryDto&gt;&gt;(artists));
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, ex.Message);
+        throw;
+    }
+</div></code></pre>
+<p>Returns.</p>
+<blockquote>
+<p>[16:47:20 ERR] In catch!:<br>
+System.Exception: Throw exception...<br>
+at RecordDb.API.Controllers.ArtistsController.GetAll(String filterOn, String filterQuery, String sortBy, Nullable`1 isAscending, Int32 pageNumber, Int32 pageSize) in D:\Projects\RecordDbWeb\RecordDb.API\Controllers\ArtistsController.cs:line 37</p>
+</blockquote>
+<h3 id="logging-to-a-text-file">Logging to a text file</h3>
+<h4 id="package">Package</h4>
+<ul>
+<li>Serilog.Sinks.File</li>
+</ul>
+<p>Create the <strong>Logs</strong> folder in the API.</p>
+<p>change <code>Program.cs</code>.</p>
+<pre class="hljs"><code><div>    var logger = new LoggerConfiguration()
+        .WriteTo.Console()
+        .WriteTo.File(<span class="hljs-string">"Logs/recorddbLog.txt"</span>, rollingInterval: RollingInterval.Day)
+        .MinimumLevel.Warning()
+        .CreateLogger();
+</div></code></pre>
+<p>We have added the <code>.WriteTo.File()</code> method. Try <code>GetAll()</code> and this is written to the log file.</p>
+<blockquote>
+<p>2024-06-02 17:18:01.378 +10:00 [ERR] Hmmmmn...!<br>
+System.Exception: Hmmmmn...!<br>
+at RecordDb.API.Controllers.ArtistsController.GetAll(String filterOn, String filterQuery, String sortBy, Nullable<code>1 isAscending, Int32 pageNumber, Int32 pageSize) in D:\Projects\RecordDbWeb\RecordDb.API\Controllers\ArtistsController.cs:line 38       2024-06-02 17:18:01.440 +10:00 [ERR] An unhandled exception has occurred while executing the request. System.Exception: Hmmmmn...!          at RecordDb.API.Controllers.ArtistsController.GetAll(String filterOn, String filterQuery, String sortBy, Nullable</code>1</p>
+</blockquote>
+<h2 id="global-exception-handling">Global Exception Handling</h2>
+<ul>
+<li>Handles any unexpected exceptions that occur during the processing of a request</li>
+<li>By centralising your exceptions you can create a consistent error response format</li>
+<li>This will avoid having to add exception handling code in your methods</li>
+</ul>
+<p>Normally we would handle exceptions by adding <code>Try-Catch</code> blocks into our code. This gets repetitive if we have to add this to all our endpoints.</p>
+<p>It is a much better idea to add global error handling. We are going to use this as a middleware class.</p>
+<p>Create a folder named, <code>Middleware</code> and create a new class named, <code>ExceptionHandler</code>.</p>
+<p>Create a constructor and inject the following.</p>
+<pre class="hljs"><code><div>    public class ExceptionHandler
+    {
+        public ILogger&lt;ExceptionHandler&gt; Logger { get; }
+        public RequestDelegate Next { get; }
+
+        public ExceptionHandler(ILogger&lt;ExceptionHandler&gt; logger, RequestDelegate next)
+        {
+            Logger = logger;
+            Next = next;
+        }
+    }
+</div></code></pre>
+<p><code>RequestDelegate</code> returns a <strong>task</strong> that represents the completion of a request processing. So this completes the Http Request.</p>
+<p>we are going to create an <code>InvokeAsync()</code> method so that we can use this request delegate to pass the context.</p>
+<pre class="hljs"><code><div>    public async Task InvokeAsync(HttpContext httpContext)
+    {
+        try
+        {
+            await next(httpContext);
+        }
+        catch (Exception ex)
+        {
+            var errorId = Guid.NewGuid();
+            logger.LogError(ex, $<span class="hljs-string">"{errorId} : {ex.Message}"</span>);
+
+            // <span class="hljs-built_in">return</span> a custom error response
+            httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            httpContext.Response.ContentType = <span class="hljs-string">"application/json"</span>;
+
+            var error = new
+            {
+                Id = errorId,
+                ErrorMessage = <span class="hljs-string">"Something went wrong! We are looking into resolving this."</span>
+            };
+
+            await httpContext.Response.WriteAsJsonAsync(error);
+        }
+    }
+</div></code></pre>
+<p>Now we are ready to inject this piece of middleware into the middleware request pipeline in <code>Program.cs</code>.</p>
+<p>After the <code>Swagger()</code> class in the request pipeline add this.</p>
+<pre class="hljs"><code><div>    app.UseMiddleware&lt;ExceptionHandler&gt;();
+</div></code></pre>
+<p>So now we have added this middleware into our request pipeline so it is ready to be used.</p>
+<p>Go to the <code>ArtistsController</code> and add an exception.</p>
+<pre class="hljs"><code><div>    throw new Exception(<span class="hljs-string">"Heck, something has broken!"</span>);
+</div></code></pre>
+<p>Now run the application and see the results.</p>
+<blockquote>
+<p>[18:41:55 ERR] 57a80c5d-bb8f-436a-a13a-2cc4b47f8cbf : Heck, something has broken!<br>
+System.Exception: Heck, something has broken!<br>
+at RecordDb.API.Controllers.ArtistsController.GetAll(String filterOn, String filterQuery, String sortBy, Nullable`1 isAscending, Int32 pageNumber, Int32 pageSize) in D:\Projects\RecordDbWeb\RecordDb.API\Controllers\ArtistsController.cs:line 36</p>
+</blockquote>
+<p>We are now able to catch any exceptions that happen in our controllers, repositories or other classes.</p>
+
+</body>
+</html>
