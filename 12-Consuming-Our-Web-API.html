@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>12-Consuming-Our-Web-API.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="consuming-our-web-api">Consuming our Web API</h1>
+<h2 id="add-an-mvc-core-project">Add an MVC Core project</h2>
+<p>Choose the ASP.Net Core Web App (Model-View-Controller) template.</p>
+<p>Name the project <code>RecordDb.UI</code>.</p>
+<p>We have created two projects in our solution we need to run both of them at the same time.</p>
+<p>Right-click on the Solution and select properties.</p>
+<p>Select <code>Multiple Startup</code> projects.</p>
+<p>Change both actions to <strong>Start</strong>.</p>
+<p><img src="assets/images/startup.jpg" alt="Multiple startup projects" title="Multiple startup projects"></p>
+<p>You should see the following view to start multiple projects.</p>
+<p><img src="assets/images/multiple-startup.jpg" alt="Multiple startup projects" title="Multiple startup projects"></p>
+<p>Click <code>Start</code> to run both projects. This should show you the MVC and API projects in your browser.</p>
+<h2 id="get---artists">GET - Artists</h2>
+<p>Create a new <code>ArtistsController.cs</code> in our UI project.</p>
+<p>This is the template.</p>
+<pre class="hljs"><code><div>    public class ArtistsController : Controller
+    {
+        public IActionResult <span class="hljs-function"><span class="hljs-title">Index</span></span>()
+        {
+            <span class="hljs-built_in">return</span> View();
+        }
+    }
+</div></code></pre>
+<p>Right-click on <code>View()</code></p>
+<p>Select <strong>Add View</strong> and select the empty Razor view named <code>Index.cshtml</code>.</p>
+<p>This creates a view in the structure <code>Views--&gt;Artists--&gt;Index.cshtml</code>.</p>
+<p>In the <code>ArtistsController</code> we want to get all <code>Artists</code> from the API and pass that data to the <code>View()</code>.</p>
+<p>The <code>HttpClient</code> class is used to send HTTP requests and receive HTTP responses from a resource identified by a URI.</p>
+<p><a href="https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient?view=net-8.0">HttpClient class web page.</a></p>
+<p>To use the <code>HttpClient</code> we have to inject the <code>HttpClient</code> factory inside <code>Program.cs</code> so that it can create the <code>HttpClient</code> for us.</p>
+<p>Add the <code>HttpClient</code> into the Services section.</p>
+<pre class="hljs"><code><div>    // Add services to the container.
+    builder.Services.AddControllersWithViews();
+
+    builder.Services.AddHttpClient();
+
+    var app = builder.Build();
+</div></code></pre>
+<p>Now in the <code>ArtistsController</code> add a constructor to inject the <code>HttpClient</code>.</p>
+<pre class="hljs"><code><div>    private <span class="hljs-built_in">readonly</span> IHttpClientFactory httpClientFactory;
+
+    public ArtistsController(IHttpClientFactory httpClientFactory)
+    {
+        this.httpClientFactory = httpClientFactory;
+    }
+</div></code></pre>
+<p>In the API go to Properties--&gt;LaunchSettings to get the URL, in our case, <a href="https://localhost:7262">https://localhost:7262</a>.</p>
+<pre class="hljs"><code><div>    [HttpGet]
+    public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">Index</span></span>()
+    {
+        var client = httpClientFactory.CreateClient();
+
+        var response = await client.GetAsync(<span class="hljs-string">"https://localhost:7262/api/artists"</span>);
+        
+        response.EnsureSuccessStatusCode();
+
+        <span class="hljs-built_in">return</span> View();
+    }
+</div></code></pre>
+<p><strong>Note:</strong> we shouldn't hardcode the URL in our code. This should be returned from <code>appsettings.cs</code>.</p>
+<p><code>client.GetAsync()</code> returns a response message so we capture this with a variable (<code>response</code>). It should also return a Success status code so ASP.Net has a method to get this result (<code>response.EnsureSuccessStatusCode()</code>).</p>
+<p>THis could cause an exception of no data is sent back so we need to wrap this code in a <code>try-catch</code> block. We can do this with a <code>Ctrl K-S</code> keystroke and then we select the try-catch option.</p>
+<pre class="hljs"><code><div>    [HttpGet]
+    public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">Index</span></span>()
+    {
+        try
+        {
+            var client = httpClientFactory.CreateClient();
+
+            var response = await client.GetAsync(<span class="hljs-string">"https://localhost:7262/api/artists"</span>);
+
+            response.EnsureSuccessStatusCode();
+
+        }
+        catch (Exception ex)
+        {
+            // <span class="hljs-built_in">log</span> the exception
+        }
+
+        <span class="hljs-built_in">return</span> View();
+    }
+</div></code></pre>
+<p>If we reach the <code>response.EnsureSuccessStatusCode();</code> statement we know that we have data so we can capture it with.</p>
+<pre class="hljs"><code><div>    var body = await response.Content.ReadAsStringAsync();
+    
+    ViewBag.Response = body;
+</div></code></pre>
+<h3 id="indexcshtml">Index.cshtml</h3>
+<pre class="hljs"><code><div>    &lt;h3 class=<span class="hljs-string">"mt-3"</span>&gt;Artists&lt;/h3&gt;
+
+    @<span class="hljs-keyword">if</span> (ViewBag.Response is not null)
+    {
+        &lt;p&gt;@ViewBag.Response&lt;/p&gt;    
+    }
+</div></code></pre>
+<p>This returns a string that we can print to the browser.</p>
+<p>Use this link to see your data.</p>
+<blockquote>
+<p><a href="https://localhost:7102/artists">https://localhost:7102/artists</a></p>
+</blockquote>
+<p>In the <code>_Layout.cshtml</code> layout page change the Privacy link to. This saves you having to put the link into the browser.</p>
+<pre class="hljs"><code><div>&lt;li class=<span class="hljs-string">"nav-item"</span>&gt;
+    &lt;a class=<span class="hljs-string">"nav-link text-dark"</span> asp-area=<span class="hljs-string">""</span> asp-controller=<span class="hljs-string">"Artists"</span> asp-action=<span class="hljs-string">"Index"</span>&gt;Artists&lt;/a&gt;
+&lt;/li&gt;
+</div></code></pre>
+<p>Returns the first 15 artists.</p>
+<p><img src="assets/images/string-results.jpg" alt="String results" title="String results"></p>
+<p>This isn't the way we should view our output. We should use the <code>Artist</code> object to store the data and then return it in a table output.</p>
+<p>In the <code>Models</code> folder create a <code>DTO</code> folder and add an <code>ArtistDto</code> class with the fields from the <code>ArtistQueryDto</code> class. Remember that we created a cut down version of the class in the API that removed the <code>Biography</code> field.</p>
+<p>Change the <code>ArtistsController-Index()</code> method.</p>
+<pre class="hljs"><code><div>    [HttpGet]
+    public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">Index</span></span>()
+    {
+        List&lt;ArtistDto&gt; response = new List&lt;ArtistDto&gt;();
+
+        try
+        {
+            var client = httpClientFactory.CreateClient();
+
+            var responseMessage = await client.GetAsync(<span class="hljs-string">"https://localhost:7262/api/artists"</span>);
+
+            responseMessage.EnsureSuccessStatusCode();
+
+            response.AddRange(await responseMessage.Content.ReadFromJsonAsync&lt;IEnumerable&lt;ArtistDto&gt;&gt;());
+        }
+        catch (Exception ex)
+        {
+            // <span class="hljs-built_in">log</span> the exception
+        }
+
+        <span class="hljs-built_in">return</span> View(response);
+    }
+</div></code></pre>
+<p>Now change the <code>View()</code> page.</p>
+<pre class="hljs"><code><div>@model IEnumerable&lt;RecordDb.UI.Models.DTO.ArtistDto&gt;
+
+&lt;h3 class=<span class="hljs-string">"mt-3"</span>&gt;Artists&lt;/h3&gt;
+
+&lt;table class=<span class="hljs-string">"table table-bordered mt-3"</span>&gt;
+    &lt;thead&gt;
+        &lt;tr&gt;
+            &lt;th&gt;Id&lt;/th&gt;
+            &lt;th&gt;First Name&lt;/th&gt;
+            &lt;th&gt;Last Name&lt;/th&gt;
+            &lt;th&gt;Name&lt;/th&gt;
+        &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+        @foreach (var artist <span class="hljs-keyword">in</span> Model)
+        {
+            &lt;tr&gt;
+                &lt;td&gt;@artist.ArtistId&lt;/td&gt;
+                &lt;td&gt;@artist.FirstName&lt;/td&gt;
+                &lt;td&gt;@artist.LastName&lt;/td&gt;
+                &lt;td&gt;@artist.Name&lt;/td&gt;
+                &lt;td&gt;
+                    &lt;a asp-controller=<span class="hljs-string">"Artists"</span> asp-action=<span class="hljs-string">"Edit"</span> asp-route-id=<span class="hljs-string">"@artist.ArtistId"</span>
+                       class=<span class="hljs-string">"btn btn-light"</span>&gt;Edit&lt;/a&gt;
+                &lt;/td&gt;
+            &lt;/tr&gt;
+        }
+    &lt;/tbody&gt;
+&lt;/table&gt;
+</div></code></pre>
+<p>Returns.</p>
+<p><img src="assets/images/artist-table-view.jpg" alt="Artist table view" title="Artist table view"></p>
+<h2 id="add-an-artist">Add an Artist</h2>
+<p>In the Index page we will add a link to add a new <code>Artist</code> record.</p>
+<pre class="hljs"><code><div>&lt;h3 class=<span class="hljs-string">"mt-3"</span>&gt;Artists&lt;/h3&gt;
+
+&lt;div class=<span class="hljs-string">"d-flex justify-content-end"</span>&gt;
+    &lt;a class=<span class="hljs-string">"btn btn-secondary"</span> asp-controller=<span class="hljs-string">"Artists"</span> asp-action=<span class="hljs-string">"Add"</span>&gt;Add Artist&lt;/a&gt;
+&lt;/div&gt;
+</div></code></pre>
+<p>Add a new <code>Add()</code> method to the ArtistsController. This will be another <code>HttpGet</code> method that is only used to view the <code>Add</code> form.</p>
+<pre class="hljs"><code><div>    [HttpGet]
+    public IActionResult <span class="hljs-function"><span class="hljs-title">Add</span></span>()
+    {
+        <span class="hljs-built_in">return</span> View();
+    }
+</div></code></pre>
+<p>Once we fill in the fields as required we can create an <code>HttpPost</code> Add() method to save the data.</p>
+<pre class="hljs"><code><div>[HttpPost]
+public async Task&lt;IActionResult&gt; Add(AddArtistViewModel model)
+{
+    var client = httpClientFactory.CreateClient();
+
+    var httpRequestMessage = new <span class="hljs-function"><span class="hljs-title">HttpRequestMessage</span></span>() 
+    { 
+        Method = HttpMethod.Post,
+        RequestUri = new Uri(<span class="hljs-string">"https://localhost:7262/api/artists"</span>),
+        Content = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, <span class="hljs-string">"application/json"</span>)
+    };
+
+    var httpResponseMessage = await client.SendAsync(httpRequestMessage);
+
+    httpResponseMessage.EnsureSuccessStatusCode();
+
+    var response = await httpResponseMessage.Content.ReadFromJsonAsync&lt;ArtistDto&gt;();
+
+    <span class="hljs-keyword">if</span> (response is not null)
+    {
+        <span class="hljs-built_in">return</span> RedirectToAction(<span class="hljs-string">"Index"</span>, <span class="hljs-string">"Artists"</span>);
+    }
+
+    <span class="hljs-built_in">return</span> View(response);
+}
+</div></code></pre>
+
+</body>
+</html>
