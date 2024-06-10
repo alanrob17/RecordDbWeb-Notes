@@ -74,7 +74,7 @@ Now in the ``ArtistsController`` add a constructor to inject the ``HttpClient``.
     }
 ```
 
-In the API go to Properties-->LaunchSettings to get the URL, in our case, <https://localhost:7262>.
+In the API go to ``Properties-->LaunchSettings`` to get the URL, in our case, <https://localhost:7262>.
 
 ```bash
     [HttpGet]
@@ -92,9 +92,9 @@ In the API go to Properties-->LaunchSettings to get the URL, in our case, <https
 
 **Note:** we shouldn't hardcode the URL in our code. This should be returned from ``appsettings.cs``.
 
-``client.GetAsync()`` returns a response message so we capture this with a variable (``response``). It should also return a Success status code so ASP.Net has a method to get this result (``response.EnsureSuccessStatusCode()``).
+``client.GetAsync()`` returns a response message so we capture this with a variable (``response``). It should also return a ``Success`` status code. ASP.Net has a method to get this result (``response.EnsureSuccessStatusCode()``).
 
-THis could cause an exception of no data is sent back so we need to wrap this code in a ``try-catch`` block. We can do this with a ``Ctrl K-S`` keystroke and then we select the try-catch option.
+This could cause an exception if no data is sent back so we need to wrap this code in a ``try-catch`` block. We can do this with a ``Ctrl K-S`` keystroke and then we select the ``try-catch`` option.
 
 ```bash
     [HttpGet]
@@ -107,7 +107,10 @@ THis could cause an exception of no data is sent back so we need to wrap this co
             var response = await client.GetAsync("https://localhost:7262/api/artists");
 
             response.EnsureSuccessStatusCode();
-
+        
+            var body = await response.Content.ReadAsStringAsync();
+    
+            ViewBag.Response = body;
         }
         catch (Exception ex)
         {
@@ -143,7 +146,7 @@ Use this link to see your data.
 
 > <https://localhost:7102/artists>
 
-In the ``_Layout.cshtml`` layout page change the Privacy link to. This saves you having to put the link into the browser.
+In the ``_Layout.cshtml`` layout page change the Privacy link to the following. This saves you having to put the link into the browser.
 
 ```bash
 <li class="nav-item">
@@ -157,7 +160,7 @@ Returns the first 15 artists.
 
 This isn't the way we should view our output. We should use the ``Artist`` object to store the data and then return it in a table output.
 
-In the ``Models`` folder create a ``DTO`` folder and add an ``ArtistDto`` class with the fields from the ``ArtistQueryDto`` class. Remember that we created a cut down version of the class in the API that removed the ``Biography`` field.
+In the ``Models`` folder create a ``DTO`` folder and add an ``ArtistDto`` class with the fields from the ``ArtistQueryDto`` class. Add the ``Biography`` field.
 
 Change the ``ArtistsController-Index()`` method.
 
@@ -275,3 +278,227 @@ public async Task<IActionResult> Add(AddArtistViewModel model)
     return View(response);
 }
 ```
+
+## Edit an Artist
+
+Create an ``HttpGet`` Edit() method to return an ``Artists`` details to the browser.
+
+```bash
+    [HttpGet]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var client = httpClientFactory.CreateClient();
+        var response = await client.GetFromJsonAsync<ArtistDto>($"https://localhost:7262/api/artists/{id.ToString()}");
+
+        if (response is not null)
+        {
+            return View(response);
+        }
+
+        return View(null);
+    }
+```
+
+Once you have updated an ``Artists`` details you need to use the ``HttpPost`` Edit() method to update the database.
+
+```bash
+    [HttpPost]
+    public async Task<IActionResult> Edit(ArtistDto request)
+    {
+        var client = httpClientFactory.CreateClient()   
+    
+        var httpRequestMessage = new HttpRequestMessage()
+        {
+            Method = HttpMethod.Put,
+            RequestUri = new Uri($"https://localhost:7262/api/artists/{request.ArtistId}"),
+            Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json")
+        }   
+    
+        var httpResponseMessage = await client.SendAsync(httpRequestMessage);
+        httpResponseMessage.EnsureSuccessStatusCode()   
+    
+        var response = await httpResponseMessage.Content.ReadFromJsonAsync<ArtistDto>() 
+    
+        if (response is not null)
+        {
+            return RedirectToAction("Index", "Artists");
+        }
+
+        return View();
+    }
+```
+
+**Edit.cshtml**
+
+```bash
+@model RecordDb.UI.Models.DTO.ArtistDto
+
+@{
+}
+
+<h1 class="mt-3">Add Artist</h1>
+
+<form method="post">
+
+    <div class="row">
+        <div class="col-md-6">
+
+            <div class="mt-3">
+                <label class="form-label">Id</label>
+                <input type="text" class="form-control" asp-for="ArtistId" readonly />
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">First name</label>
+                <input type="text" class="form-control" asp-for="FirstName" />
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">Last name</label>
+                <input type="text" class="form-control" asp-for="LastName" />
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" asp-for="Name" />
+            </div>
+
+            <div class="form-group mt-3">
+                <label asp-for="Biography" class="control-label"></label>
+                <textarea asp-for="Biography" class="form-control"></textarea>
+            </div>
+
+            <div class="mt-3 d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">Save</button>
+
+                <button type="submit" asp-controller="Artists"
+                        asp-action="Delete"
+                        class="btn btn-danger">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+</form>
+```
+
+**Note:** for editing you need to add an ``Artistid`` readonly field to the view so that the update Post process knows which ``Artist`` to update.
+
+## Artist Details
+
+Change the ``Index.cshtml`` Razor page to add a ``Details`` button.
+
+```bash
+    <td>
+        <a asp-controller="Artists" asp-action="Details" asp-route-id="@artist.ArtistId"
+           class="btn btn-light">Details</a>
+    </td>
+```
+
+### HtmlSanitizer
+
+I need to sanitise the ``Biography`` content to display it in the Browser as Html for the ``Details`` page.
+
+Add the package.
+
+> Install-Package HtmlSanitizer
+
+Now add a ``HttpGet`` Details() method to display Artist record.
+
+```bash
+[HttpGet]
+public async Task<IActionResult> Details(int id)
+{
+    var client = httpClientFactory.CreateClient();
+    var response = await client.GetFromJsonAsync<ArtistDto>($"https://localhost:7262/api/artists/{id.ToString()}");
+
+    var sanitizer = new HtmlSanitizer();
+    sanitizer.AllowedTags.Add("img");
+    sanitizer.AllowedAttributes.Add("src");
+    sanitizer.AllowedAttributes.Add("alt");
+    sanitizer.AllowedAttributes.Add("title");
+
+    if (response is not null)
+    {
+        if (response.Biography is not null)
+        {
+            response.Biography = sanitizer.Sanitize(response.Biography);
+        }
+
+        return View(response);
+    }
+
+    return View(null);
+}
+```
+
+Note how I sanitise my Html content in the Biography field.
+
+#### Details.cshtml
+
+```bash
+    @model RecordDb.UI.Models.DTO.ArtistDto
+
+    @{
+        ViewData["Title"] = "Artist Details";
+    }
+
+    <h3>Artist details</h3>
+
+    <div>
+        <h4>Artist view</h4>
+        <hr />
+        <dl class="row">
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Name)
+            </dt>
+            <dd class="col-sm-10">
+                <h4>@Html.DisplayFor(model => model.Name)</h4>
+            </dd>
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Biography)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.Raw(Model.Biography)
+            </dd>
+        </dl>
+    </div>
+    <div>
+        @Html.ActionLink("Edit", "Edit", new { id = Model.ArtistId }) |
+        <a asp-action="Index">Back to List</a>
+    </div>
+```
+
+Note also that I use ``@Html.Raw(Model.Biography)`` to view my content as Html.
+
+**Note:** I have images in some of my ``Biography`` content. Normally I would dump these in an ``images`` folder in my project but this doesn't work. I have to remember to dump my static content inside of the ``wwwroot`` static folder.
+
+## Delete an Artist
+
+The ``Delete()`` method uses an ``HttpPost`` annotation to delete an Artist entity.
+
+```bash
+[HttpPost]
+public async Task<IActionResult> Delete(ArtistDto request)
+{
+    try
+    {
+        var client = httpClientFactory.CreateClient()
+     
+        var httpResponseMessage = await client.DeleteAsync($"https://localhost:7262/api/artists/{request.ArtistId}")
+     
+        var response = httpResponseMessage.EnsureSuccessStatusCode()
+     
+        return RedirectToAction("Index", "Artists");
+    }
+    catch (Exception ex)
+    {
+        // Console
+    }
+    
+    return View("Edit");
+}
+```
+
+**Note:** This action method deletes an entity with no warning. It would be better to use JavaScript to pop up a message that warns the user that they are about to delete an ``Artist`` entity.

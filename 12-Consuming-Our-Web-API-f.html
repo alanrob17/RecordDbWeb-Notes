@@ -1,370 +1,79 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>12-Consuming-Our-Web-API.md</title>
-<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-
-<style>
-/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
-body {
-	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
-	font-size: var(--vscode-markdown-font-size, 14px);
-	padding: 0 26px;
-	line-height: var(--vscode-markdown-line-height, 22px);
-	word-wrap: break-word;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Consuming Our Web API</title>
+<link href="assets/css/bootstrap.css" rel="stylesheet">
+<!-- Custom styles for this template -->
+<link href="assets/css/starter-template.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+<style type="text/css">
+html {
+	font-size: 90.0%;
 }
 
-#code-csp-warning {
-	position: fixed;
-	top: 0;
-	right: 0;
-	color: white;
-	margin: 16px;
-	text-align: center;
-	font-size: 12px;
-	font-family: sans-serif;
-	background-color:#444444;
-	cursor: pointer;
-	padding: 6px;
-	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+h2 {
+	margin-top: 60px;
 }
 
-#code-csp-warning:hover {
-	text-decoration: none;
-	background-color:#007acc;
-	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+h4, h3 {
+	padding-top: 40px!;		
 }
 
-body.scrollBeyondLastLine {
-	margin-bottom: calc(100vh - 22px);
+p {
+	font-size: 1.2em;
+}
+h4 {
+	font-size: 1.4em;
 }
 
-body.showEditorSelection .code-line {
-	position: relative;
+img, pre.prettyprint {
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
 }
+h1, h2, h3, h4, h5, h6 {
+    color:#007bff;
 
-body.showEditorSelection .code-active-line:before,
-body.showEditorSelection .code-line:hover:before {
-	content: "";
-	display: block;
-	position: absolute;
-	top: 0;
-	left: -12px;
-	height: 100%;
 }
-
-body.showEditorSelection li.code-active-line:before,
-body.showEditorSelection li.code-line:hover:before {
-	left: -30px;
-}
-
-.vscode-light.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(0, 0, 0, 0.15);
-}
-
-.vscode-light.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(0, 0, 0, 0.40);
-}
-
-.vscode-light.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-.vscode-dark.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(255, 255, 255, 0.4);
-}
-
-.vscode-dark.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(255, 255, 255, 0.60);
-}
-
-.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-.vscode-high-contrast.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(255, 160, 0, 0.7);
-}
-
-.vscode-high-contrast.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(255, 160, 0, 1);
-}
-
-.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-img {
-	max-width: 100%;
-	max-height: 100%;
-}
-
-a {
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
-a:focus,
-input:focus,
-select:focus,
-textarea:focus {
-	outline: 1px solid -webkit-focus-ring-color;
-	outline-offset: -1px;
-}
-
-hr {
-	border: 0;
-	height: 2px;
-	border-bottom: 2px solid;
-}
-
-h1 {
-	padding-bottom: 0.3em;
-	line-height: 1.2;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
-}
-
-h1, h2, h3 {
-	font-weight: normal;
-}
-
-table {
-	border-collapse: collapse;
-}
-
-table > thead > tr > th {
-	text-align: left;
-	border-bottom: 1px solid;
-}
-
-table > thead > tr > th,
-table > thead > tr > td,
-table > tbody > tr > th,
-table > tbody > tr > td {
-	padding: 5px 10px;
-}
-
-table > tbody > tr + tr > td {
-	border-top: 1px solid;
-}
-
 blockquote {
-	margin: 0 7px 0 5px;
-	padding: 0 16px 0 10px;
-	border-left-width: 5px;
-	border-left-style: solid;
-}
-
-code {
-	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
-	font-size: 1em;
-	line-height: 1.357em;
-}
-
-body.wordWrap pre {
-	white-space: pre-wrap;
-}
-
-pre:not(.hljs),
-pre.hljs code > div {
-	padding: 16px;
-	border-radius: 3px;
-	overflow: auto;
-}
-
-pre code {
-	color: var(--vscode-editor-foreground);
-	tab-size: 4;
-}
-
-/** Theming */
-
-.vscode-light pre {
-	background-color: rgba(220, 220, 220, 0.4);
-}
-
-.vscode-dark pre {
-	background-color: rgba(10, 10, 10, 0.4);
-}
-
-.vscode-high-contrast pre {
-	background-color: rgb(0, 0, 0);
-}
-
-.vscode-high-contrast h1 {
-	border-color: rgb(0, 0, 0);
-}
-
-.vscode-light table > thead > tr > th {
-	border-color: rgba(0, 0, 0, 0.69);
-}
-
-.vscode-dark table > thead > tr > th {
-	border-color: rgba(255, 255, 255, 0.69);
-}
-
-.vscode-light h1,
-.vscode-light hr,
-.vscode-light table > tbody > tr + tr > td {
-	border-color: rgba(0, 0, 0, 0.18);
-}
-
-.vscode-dark h1,
-.vscode-dark hr,
-.vscode-dark table > tbody > tr + tr > td {
-	border-color: rgba(255, 255, 255, 0.18);
-}
-
-</style>
-
-<style>
-/* Tomorrow Theme */
-/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
-/* Original theme - https://github.com/chriskempson/tomorrow-theme */
-
-/* Tomorrow Comment */
-.hljs-comment,
-.hljs-quote {
-	color: #8e908c;
-}
-
-/* Tomorrow Red */
-.hljs-variable,
-.hljs-template-variable,
-.hljs-tag,
-.hljs-name,
-.hljs-selector-id,
-.hljs-selector-class,
-.hljs-regexp,
-.hljs-deletion {
-	color: #c82829;
-}
-
-/* Tomorrow Orange */
-.hljs-number,
-.hljs-built_in,
-.hljs-builtin-name,
-.hljs-literal,
-.hljs-type,
-.hljs-params,
-.hljs-meta,
-.hljs-link {
-	color: #f5871f;
-}
-
-/* Tomorrow Yellow */
-.hljs-attribute {
-	color: #eab700;
-}
-
-/* Tomorrow Green */
-.hljs-string,
-.hljs-symbol,
-.hljs-bullet,
-.hljs-addition {
-	color: #718c00;
-}
-
-/* Tomorrow Blue */
-.hljs-title,
-.hljs-section {
-	color: #4271ae;
-}
-
-/* Tomorrow Purple */
-.hljs-keyword,
-.hljs-selector-tag {
-	color: #8959a8;
-}
-
-.hljs {
-	display: block;
-	overflow-x: auto;
-	color: #4d4d4c;
-	padding: 0.5em;
-}
-
-.hljs-emphasis {
-	font-style: italic;
-}
-
-.hljs-strong {
-	font-weight: bold;
+    border-left: 4px solid #999;
+    padding-left: 1rem;
+    page-break-inside: avoid;
 }
 </style>
-
-<style>
-/*
- * Markdown PDF CSS
- */
-
- body {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
-	padding: 0 12px;
-}
-
-pre {
-	background-color: #f8f8f8;
-	border: 1px solid #cccccc;
-	border-radius: 3px;
-	overflow-x: auto;
-	white-space: pre-wrap;
-	overflow-wrap: break-word;
-}
-
-pre:not(.hljs) {
-	padding: 23px;
-	line-height: 19px;
-}
-
-blockquote {
-	background: rgba(127, 127, 127, 0.1);
-	border-color: rgba(0, 122, 204, 0.5);
-}
-
-.emoji {
-	height: 1.4em;
-}
-
-code {
-	font-size: 14px;
-	line-height: 19px;
-}
-
-/* for inline code */
-:not(pre):not(.hljs) > code {
-	color: #C9AE75; /* Change the old color so it seems less like an error */
-	font-size: inherit;
-}
-
-/* Page Break : use <div class="page"/> to insert page break
--------------------------------------------------------- */
-.page {
-	page-break-after: always;
-}
-
-</style>
-
-<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 </head>
 <body>
-  <script>
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
-          ? 'dark'
-          : 'default'
-    });
-  </script>
+<header>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Building ASP.Net Core Web API's</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Consuming Our Web API <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="container">
+    <div class="starter-template">
+
+
 <h1 id="consuming-our-web-api">Consuming our Web API</h1>
 <h2 id="add-an-mvc-core-project">Add an MVC Core project</h2>
 <p>Choose the ASP.Net Core Web App (Model-View-Controller) template.</p>
@@ -380,7 +89,7 @@ code {
 <h2 id="get---artists">GET - Artists</h2>
 <p>Create a new <code>ArtistsController.cs</code> in our UI project.</p>
 <p>This is the template.</p>
-<pre class="hljs"><code><div>    public class ArtistsController : Controller
+<pre class="prettyprint"><code><div>    public class ArtistsController : Controller
     {
         public IActionResult <span class="hljs-function"><span class="hljs-title">Index</span></span>()
         {
@@ -396,7 +105,7 @@ code {
 <p><a href="https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient?view=net-8.0">HttpClient class web page.</a></p>
 <p>To use the <code>HttpClient</code> we have to inject the <code>HttpClient</code> factory inside <code>Program.cs</code> so that it can create the <code>HttpClient</code> for us.</p>
 <p>Add the <code>HttpClient</code> into the Services section.</p>
-<pre class="hljs"><code><div>    // Add services to the container.
+<pre class="prettyprint"><code><div>    // Add services to the container.
     builder.Services.AddControllersWithViews();
 
     builder.Services.AddHttpClient();
@@ -404,7 +113,7 @@ code {
     var app = builder.Build();
 </div></code></pre>
 <p>Now in the <code>ArtistsController</code> add a constructor to inject the <code>HttpClient</code>.</p>
-<pre class="hljs"><code><div>    private <span class="hljs-built_in">readonly</span> IHttpClientFactory httpClientFactory;
+<pre class="prettyprint"><code><div>    private <span class="hljs-built_in">readonly</span> IHttpClientFactory httpClientFactory;
 
     public ArtistsController(IHttpClientFactory httpClientFactory)
     {
@@ -412,7 +121,7 @@ code {
     }
 </div></code></pre>
 <p>In the API go to <code>Properties--&gt;LaunchSettings</code> to get the URL, in our case, <a href="https://localhost:7262">https://localhost:7262</a>.</p>
-<pre class="hljs"><code><div>    [HttpGet]
+<pre class="prettyprint"><code><div>    [HttpGet]
     public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">Index</span></span>()
     {
         var client = httpClientFactory.CreateClient();
@@ -427,7 +136,7 @@ code {
 <p><strong>Note:</strong> we shouldn't hardcode the URL in our code. This should be returned from <code>appsettings.cs</code>.</p>
 <p><code>client.GetAsync()</code> returns a response message so we capture this with a variable (<code>response</code>). It should also return a <code>Success</code> status code. ASP.Net has a method to get this result (<code>response.EnsureSuccessStatusCode()</code>).</p>
 <p>This could cause an exception if no data is sent back so we need to wrap this code in a <code>try-catch</code> block. We can do this with a <code>Ctrl K-S</code> keystroke and then we select the <code>try-catch</code> option.</p>
-<pre class="hljs"><code><div>    [HttpGet]
+<pre class="prettyprint"><code><div>    [HttpGet]
     public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">Index</span></span>()
     {
         try
@@ -451,12 +160,12 @@ code {
     }
 </div></code></pre>
 <p>If we reach the <code>response.EnsureSuccessStatusCode();</code> statement we know that we have data so we can capture it with.</p>
-<pre class="hljs"><code><div>    var body = await response.Content.ReadAsStringAsync();
+<pre class="prettyprint"><code><div>    var body = await response.Content.ReadAsStringAsync();
     
     ViewBag.Response = body;
 </div></code></pre>
 <h3 id="indexcshtml">Index.cshtml</h3>
-<pre class="hljs"><code><div>    &lt;h3 class=<span class="hljs-string">"mt-3"</span>&gt;Artists&lt;/h3&gt;
+<pre class="prettyprint"><code><div>    &lt;h3 class=<span class="hljs-string">"mt-3"</span>&gt;Artists&lt;/h3&gt;
 
     @<span class="hljs-keyword">if</span> (ViewBag.Response is not null)
     {
@@ -469,7 +178,7 @@ code {
 <p><a href="https://localhost:7102/artists">https://localhost:7102/artists</a></p>
 </blockquote>
 <p>In the <code>_Layout.cshtml</code> layout page change the Privacy link to the following. This saves you having to put the link into the browser.</p>
-<pre class="hljs"><code><div>&lt;li class=<span class="hljs-string">"nav-item"</span>&gt;
+<pre class="prettyprint"><code><div>&lt;li class=<span class="hljs-string">"nav-item"</span>&gt;
     &lt;a class=<span class="hljs-string">"nav-link text-dark"</span> asp-area=<span class="hljs-string">""</span> asp-controller=<span class="hljs-string">"Artists"</span> asp-action=<span class="hljs-string">"Index"</span>&gt;Artists&lt;/a&gt;
 &lt;/li&gt;
 </div></code></pre>
@@ -478,7 +187,7 @@ code {
 <p>This isn't the way we should view our output. We should use the <code>Artist</code> object to store the data and then return it in a table output.</p>
 <p>In the <code>Models</code> folder create a <code>DTO</code> folder and add an <code>ArtistDto</code> class with the fields from the <code>ArtistQueryDto</code> class. Add the <code>Biography</code> field.</p>
 <p>Change the <code>ArtistsController-Index()</code> method.</p>
-<pre class="hljs"><code><div>    [HttpGet]
+<pre class="prettyprint"><code><div>    [HttpGet]
     public async Task&lt;IActionResult&gt; <span class="hljs-function"><span class="hljs-title">Index</span></span>()
     {
         List&lt;ArtistDto&gt; response = new List&lt;ArtistDto&gt;();
@@ -502,7 +211,7 @@ code {
     }
 </div></code></pre>
 <p>Now change the <code>View()</code> page.</p>
-<pre class="hljs"><code><div>@model IEnumerable&lt;RecordDb.UI.Models.DTO.ArtistDto&gt;
+<pre class="prettyprint"><code><div>@model IEnumerable&lt;RecordDb.UI.Models.DTO.ArtistDto&gt;
 
 &lt;h3 class=<span class="hljs-string">"mt-3"</span>&gt;Artists&lt;/h3&gt;
 
@@ -536,21 +245,21 @@ code {
 <p><img src="assets/images/artist-table-view.jpg" alt="Artist table view" title="Artist table view"></p>
 <h2 id="add-an-artist">Add an Artist</h2>
 <p>In the Index page we will add a link to add a new <code>Artist</code> record.</p>
-<pre class="hljs"><code><div>&lt;h3 class=<span class="hljs-string">"mt-3"</span>&gt;Artists&lt;/h3&gt;
+<pre class="prettyprint"><code><div>&lt;h3 class=<span class="hljs-string">"mt-3"</span>&gt;Artists&lt;/h3&gt;
 
 &lt;div class=<span class="hljs-string">"d-flex justify-content-end"</span>&gt;
     &lt;a class=<span class="hljs-string">"btn btn-secondary"</span> asp-controller=<span class="hljs-string">"Artists"</span> asp-action=<span class="hljs-string">"Add"</span>&gt;Add Artist&lt;/a&gt;
 &lt;/div&gt;
 </div></code></pre>
 <p>Add a new <code>Add()</code> method to the ArtistsController. This will be another <code>HttpGet</code> method that is only used to view the <code>Add</code> form.</p>
-<pre class="hljs"><code><div>    [HttpGet]
+<pre class="prettyprint"><code><div>    [HttpGet]
     public IActionResult <span class="hljs-function"><span class="hljs-title">Add</span></span>()
     {
         <span class="hljs-built_in">return</span> View();
     }
 </div></code></pre>
 <p>Once we fill in the fields as required we can create an <code>HttpPost</code> Add() method to save the data.</p>
-<pre class="hljs"><code><div>[HttpPost]
+<pre class="prettyprint"><code><div>[HttpPost]
 public async Task&lt;IActionResult&gt; Add(AddArtistViewModel model)
 {
     var client = httpClientFactory.CreateClient();
@@ -578,7 +287,7 @@ public async Task&lt;IActionResult&gt; Add(AddArtistViewModel model)
 </div></code></pre>
 <h2 id="edit-an-artist">Edit an Artist</h2>
 <p>Create an <code>HttpGet</code> Edit() method to return an <code>Artists</code> details to the browser.</p>
-<pre class="hljs"><code><div>    [HttpGet]
+<pre class="prettyprint"><code><div>    [HttpGet]
     public async Task&lt;IActionResult&gt; Edit(int id)
     {
         var client = httpClientFactory.CreateClient();
@@ -593,7 +302,7 @@ public async Task&lt;IActionResult&gt; Add(AddArtistViewModel model)
     }
 </div></code></pre>
 <p>Once you have updated an <code>Artists</code> details you need to use the <code>HttpPost</code> Edit() method to update the database.</p>
-<pre class="hljs"><code><div>    [HttpPost]
+<pre class="prettyprint"><code><div>    [HttpPost]
     public async Task&lt;IActionResult&gt; Edit(ArtistDto request)
     {
         var client = httpClientFactory.CreateClient()   
@@ -619,7 +328,7 @@ public async Task&lt;IActionResult&gt; Add(AddArtistViewModel model)
     }
 </div></code></pre>
 <p><strong>Edit.cshtml</strong></p>
-<pre class="hljs"><code><div>@model RecordDb.UI.Models.DTO.ArtistDto
+<pre class="prettyprint"><code><div>@model RecordDb.UI.Models.DTO.ArtistDto
 
 @{
 }
@@ -673,7 +382,7 @@ public async Task&lt;IActionResult&gt; Add(AddArtistViewModel model)
 <p><strong>Note:</strong> for editing you need to add an <code>Artistid</code> readonly field to the view so that the update Post process knows which <code>Artist</code> to update.</p>
 <h2 id="artist-details">Artist Details</h2>
 <p>Change the <code>Index.cshtml</code> Razor page to add a <code>Details</code> button.</p>
-<pre class="hljs"><code><div>    &lt;td&gt;
+<pre class="prettyprint"><code><div>    &lt;td&gt;
         &lt;a asp-controller=<span class="hljs-string">"Artists"</span> asp-action=<span class="hljs-string">"Details"</span> asp-route-id=<span class="hljs-string">"@artist.ArtistId"</span>
            class=<span class="hljs-string">"btn btn-light"</span>&gt;Details&lt;/a&gt;
     &lt;/td&gt;
@@ -685,7 +394,7 @@ public async Task&lt;IActionResult&gt; Add(AddArtistViewModel model)
 <p>Install-Package HtmlSanitizer</p>
 </blockquote>
 <p>Now add a <code>HttpGet</code> Details() method to display Artist record.</p>
-<pre class="hljs"><code><div>[HttpGet]
+<pre class="prettyprint"><code><div>[HttpGet]
 public async Task&lt;IActionResult&gt; Details(int id)
 {
     var client = httpClientFactory.CreateClient();
@@ -712,7 +421,7 @@ public async Task&lt;IActionResult&gt; Details(int id)
 </div></code></pre>
 <p>Note how I sanitise my Html content in the Biography field.</p>
 <h4 id="detailscshtml">Details.cshtml</h4>
-<pre class="hljs"><code><div>    @model RecordDb.UI.Models.DTO.ArtistDto
+<pre class="prettyprint"><code><div>    @model RecordDb.UI.Models.DTO.ArtistDto
 
     @{
         ViewData[<span class="hljs-string">"Title"</span>] = <span class="hljs-string">"Artist Details"</span>;
@@ -747,7 +456,7 @@ public async Task&lt;IActionResult&gt; Details(int id)
 <p><strong>Note:</strong> I have images in some of my <code>Biography</code> content. Normally I would dump these in an <code>images</code> folder in my project but this doesn't work. I have to remember to dump my static content inside of the <code>wwwroot</code> static folder.</p>
 <h2 id="delete-an-artist">Delete an Artist</h2>
 <p>The <code>Delete()</code> method uses an <code>HttpPost</code> annotation to delete an Artist entity.</p>
-<pre class="hljs"><code><div>[HttpPost]
+<pre class="prettyprint"><code><div>[HttpPost]
 public async Task&lt;IActionResult&gt; Delete(ArtistDto request)
 {
     try
@@ -770,5 +479,20 @@ public async Task&lt;IActionResult&gt; Delete(ArtistDto request)
 </div></code></pre>
 <p><strong>Note:</strong> This action method deletes an entity with no warning. It would be better to use JavaScript to pop up a message that warns the user that they are about to delete an <code>Artist</code> entity.</p>
 
+
+
+</div><!-- starter-template -->
+</div><!-- /.container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"/>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
 </body>
 </html>
